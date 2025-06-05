@@ -35,6 +35,13 @@ export default function JournalForm({ userId }: JournalFormProps) {
   const [llmSuggestion, setLlmSuggestion] = useState<string | null>(null);
   const [llmError, setLlmError] = useState<string | null>(null);
 
+  type EmotionSource = 'ai' | 'manual';
+  type Emotion = { id: number; name: string };
+
+  const [emotionSource, setEmotionSource] = useState<EmotionSource>('ai');
+  const [emotions, setEmotions] = useState<Emotion[]>([]);
+  const [selectedEmotionId, setSelectedEmotionId] = useState<number | null>(null);
+
 
   const supabase = createClient();
   const router = useRouter();
@@ -108,6 +115,12 @@ export default function JournalForm({ userId }: JournalFormProps) {
     };
 
     fetchInitialWeather();
+
+    const fetchEmotions = async () => {
+      const { data } = await supabase.from('emotions').select('*');
+      setEmotions(data || []);
+    };
+    fetchEmotions();
   }, []); // Hanya dijalankan sekali saat mount
 
   const handleAnalyzeEmotion = async () => {
@@ -144,7 +157,6 @@ export default function JournalForm({ userId }: JournalFormProps) {
   };
 
   const handleSaveJournal = async () => {
-    // ... existing code ...
     if (!title.trim()) {
       setError("Judul jurnal tidak boleh kosong.");
       return;
@@ -153,8 +165,12 @@ export default function JournalForm({ userId }: JournalFormProps) {
       setError("Konten jurnal tidak boleh kosong.");
       return;
     }
-    if (!emotionData) {
+    if (emotionSource === 'ai' && !emotionData) {
       setError("Silakan lakukan analisis emosi terlebih dahulu sebelum menyimpan.");
+      return;
+    }
+    if (emotionSource === 'manual' && !selectedEmotionId) {
+      setError("Silakan pilih emosi utama terlebih dahulu sebelum menyimpan.");
       return;
     }
 
@@ -163,25 +179,27 @@ export default function JournalForm({ userId }: JournalFormProps) {
     setInfoMessage("Menyimpan jurnal...");
 
     try {
-      const topEmotionLabel = emotionData.top_prediction?.label;
-      const emotionId = await getEmotionIdFromDb(topEmotionLabel);
-
-      if (!emotionId && topEmotionLabel) {
-        setIsSaving(false);
-        setInfoMessage(null);
-        return; // Error sudah di-set di getEmotionIdFromDb
+      let aiEmotionId: number | null = null;
+      if (emotionSource === 'ai' && emotionData) {
+        const topEmotionLabel = emotionData.top_prediction?.label;
+        aiEmotionId = await getEmotionIdFromDb(topEmotionLabel);
+        if (!aiEmotionId && topEmotionLabel) {
+          setIsSaving(false);
+          setInfoMessage(null);
+          return;
+        }
       }
 
       const { error: insertError } = await supabase
         .from('journal_entries')
         .insert([{
           user_id: userId,
-          title: title,
-          content: content,
+          title,
+          content,
           weather_data: weatherData,
-          emotion_analysis: emotionData,
-          emotion_id: emotionId,
-          emotion_source: 'ai',
+          emotion_analysis: emotionSource === 'ai' ? emotionData : null,
+          emotion_id: emotionSource === 'manual' ? selectedEmotionId : aiEmotionId,
+          emotion_source: emotionSource,
           latitude: userLocation?.latitude,
           longitude: userLocation?.longitude,
           location_name: userLocation?.name || weatherData?.location.name,
@@ -192,16 +210,16 @@ export default function JournalForm({ userId }: JournalFormProps) {
       setTitle('');
       setContent('');
       setEmotionData(null);
+      setSelectedEmotionId(null);
       setInfoMessage("Jurnal berhasil disimpan! Mengarahkan ke dashboard...");
       setTimeout(() => {
         router.push('/protected');
       }, 2000);
 
     } catch (err: any) {
-      console.error("Error saving journal:", err);
       setError(err.message || "Terjadi kesalahan saat menyimpan jurnal.");
       setInfoMessage(null);
-      setIsSaving(false); // Hanya set false jika ada error, agar tombol tidak aktif lagi
+      setIsSaving(false);
     }
   };
 
@@ -364,6 +382,49 @@ Gunakan bahasa yang ramah, suportif, dan tidak menghakimi, seolah-olah kamu adal
         </Alert>
       )}
 
+      <div className="mb-4">
+        <Label className="block mb-1">Sumber Emosi</Label>
+        <div className="flex gap-4">
+          <label>
+            <input
+              type="radio"
+              name="emotion_source"
+              value="ai"
+              checked={emotionSource === 'ai'}
+              onChange={() => setEmotionSource('ai')}
+            />
+            AI (otomatis)
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="emotion_source"
+              value="manual"
+              checked={emotionSource === 'manual'}
+              onChange={() => setEmotionSource('manual')}
+            />
+            Pilih Sendiri
+          </label>
+        </div>
+      </div>
+
+      {emotionSource === 'manual' && (
+        <div className="mb-4">
+          <Label htmlFor="emotion-select">Pilih Emosi</Label>
+          <select
+            id="emotion-select"
+            value={selectedEmotionId ?? ''}
+            onChange={e => setSelectedEmotionId(Number(e.target.value))}
+            className="block mt-1"
+          >
+            <option value="">-- Pilih emosi --</option>
+            {emotions.map(emotion => (
+              <option key={emotion.id} value={emotion.id}>{emotion.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row gap-3">
         <Button
           onClick={handleAnalyzeEmotion}
@@ -376,7 +437,13 @@ Gunakan bahasa yang ramah, suportif, dan tidak menghakimi, seolah-olah kamu adal
         </Button>
         <Button
           onClick={handleSaveJournal}
-          disabled={isLoading || !emotionData || !content.trim() || !title.trim()}
+          disabled={
+            isLoading ||
+            !content.trim() ||
+            !title.trim() ||
+            (emotionSource === 'ai' && !emotionData) ||
+            (emotionSource === 'manual' && !selectedEmotionId)
+          }
           className="w-full sm:flex-1"
         >
           {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
