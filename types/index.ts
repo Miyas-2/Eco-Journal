@@ -74,3 +74,19 @@ export interface EmotionApiResponse {
   text: string; // Teks yang dianalisis
   top_prediction: EmotionPredictionDetail;
 }
+
+export interface JournalEntry { // Contoh jika Anda membuat tipe ini
+  id: string;
+  user_id: string;
+  title: string; // Tambahkan title
+  content: string | null;
+  created_at: string;
+  updated_at: string;
+  location_name: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  weather_data: WeatherApiResponse | null; // Atau any jika tidak ingin detail
+  emotion_analysis: EmotionApiResponse | null; // Atau any
+  emotion_id: number | null;
+  emotion_source: 'ai' | 'manual' | null;
+}

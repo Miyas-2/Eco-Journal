@@ -7,15 +7,18 @@ import { Label } from '@/components/ui/label';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, InfoIcon as Info, AlertCircle, Sparkles, Save } from 'lucide-react'; // Tambahkan ikon
+import { Loader2, InfoIcon as Info, AlertCircle, Sparkles, Save, Lightbulb, XCircle } from 'lucide-react'; // Tambahkan Lightbulb, XCircle
 import { WeatherApiResponse, EmotionApiResponse, UserLocation } from '@/types';
 import WeatherDisplay from '@/components/dashboard/weather-display';
+import { Input } from '../ui/input';
+import { GoogleGenAI } from "@google/genai";
 
 interface JournalFormProps {
   userId: string;
 }
 
 export default function JournalForm({ userId }: JournalFormProps) {
+  const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isFetchingWeather, setIsFetchingWeather] = useState(false);
   const [isAnalyzingEmotion, setIsAnalyzingEmotion] = useState(false);
@@ -27,10 +30,17 @@ export default function JournalForm({ userId }: JournalFormProps) {
   const [weatherData, setWeatherData] = useState<WeatherApiResponse | null>(null);
   const [emotionData, setEmotionData] = useState<EmotionApiResponse | null>(null);
 
+  // State baru untuk fitur inspirasi LLM
+  const [isFetchingSuggestion, setIsFetchingSuggestion] = useState(false);
+  const [llmSuggestion, setLlmSuggestion] = useState<string | null>(null);
+  const [llmError, setLlmError] = useState<string | null>(null);
+
+
   const supabase = createClient();
   const router = useRouter();
 
   const getEmotionIdFromDb = async (emotionName?: string): Promise<number | null> => {
+    // ... existing code ...
     if (!emotionName) return null;
     const normalizedEmotionName = emotionName.charAt(0).toUpperCase() + emotionName.slice(1).toLowerCase();
 
@@ -50,6 +60,7 @@ export default function JournalForm({ userId }: JournalFormProps) {
 
   useEffect(() => {
     const fetchInitialWeather = async () => {
+      // ... existing code ...
       if (weatherData || userLocation) return;
 
       setIsFetchingWeather(true);
@@ -100,6 +111,7 @@ export default function JournalForm({ userId }: JournalFormProps) {
   }, []); // Hanya dijalankan sekali saat mount
 
   const handleAnalyzeEmotion = async () => {
+    // ... existing code ...
     if (!content.trim()) {
       setError("Konten jurnal tidak boleh kosong untuk dianalisis.");
       return;
@@ -132,6 +144,11 @@ export default function JournalForm({ userId }: JournalFormProps) {
   };
 
   const handleSaveJournal = async () => {
+    // ... existing code ...
+    if (!title.trim()) {
+      setError("Judul jurnal tidak boleh kosong.");
+      return;
+    }
     if (!content.trim()) {
       setError("Konten jurnal tidak boleh kosong.");
       return;
@@ -159,6 +176,7 @@ export default function JournalForm({ userId }: JournalFormProps) {
         .from('journal_entries')
         .insert([{
           user_id: userId,
+          title: title,
           content: content,
           weather_data: weatherData,
           emotion_analysis: emotionData,
@@ -171,6 +189,7 @@ export default function JournalForm({ userId }: JournalFormProps) {
 
       if (insertError) throw insertError;
 
+      setTitle('');
       setContent('');
       setEmotionData(null);
       setInfoMessage("Jurnal berhasil disimpan! Mengarahkan ke dashboard...");
@@ -184,13 +203,57 @@ export default function JournalForm({ userId }: JournalFormProps) {
       setInfoMessage(null);
       setIsSaving(false); // Hanya set false jika ada error, agar tombol tidak aktif lagi
     }
-    // Jangan setIsSaving(false) di sini jika redirect, agar tombol tetap disabled
   };
 
-  const isLoading = isFetchingWeather || isAnalyzingEmotion || isSaving;
+  // Fungsi baru untuk mendapatkan inspirasi dari LLM
+  const handleGetInspiration = async () => {
+    if (!content.trim()) {
+      setLlmError("Tuliskan sesuatu di jurnalmu terlebih dahulu untuk mendapatkan inspirasi.");
+      setLlmSuggestion(null);
+      return;
+    }
+    setIsFetchingSuggestion(true);
+    setLlmSuggestion(null);
+    setLlmError(null);
+
+    let weatherDesc = "";
+    if (weatherData) {
+      weatherDesc += `Cuaca: ${weatherData.current.condition.text}, suhu ${weatherData.current.temp_c}°C, kelembapan ${weatherData.current.humidity}%. `;
+      if (weatherData.current.air_quality && weatherData.current.air_quality.pm2_5 !== undefined) {
+        weatherDesc += `Kualitas udara PM2.5: ${weatherData.current.air_quality.pm2_5.toFixed(1)} µg/m³. `;
+      }
+    }
+
+    const llmPrompt = `
+Saya ingin menulis jurnal harian, tapi saya bingung harus mulai dari mana. Berikut data hari ini:
+${weatherDesc}
+Isi jurnal saya sejauh ini: "${content}"
+
+Tolong berikan 2-3 pertanyaan reflektif yang hangat dan mudah dijawab, agar saya bisa mulai menulis tentang perasaan atau pengalaman hari ini. Sertakan juga 1 ide atau saran menulis yang sederhana, supaya saya lebih nyaman menuangkan isi hati atau pikiran. 
+Gunakan bahasa yang ramah, suportif, dan tidak menghakimi, seolah-olah kamu adalah teman baik yang ingin membantu saya bercerita. Jawaban singkat saja, langsung ke poin.
+`;
+    try {
+      const response = await fetch("/api/gemini-inspire", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: llmPrompt }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Gagal mendapatkan inspirasi dari Gemini.");
+      setLlmSuggestion(data.suggestion);
+    } catch (err: any) {
+      setLlmError(err.message || "Terjadi kesalahan saat mencoba mendapatkan inspirasi dari Gemini.");
+    } finally {
+      setIsFetchingSuggestion(false);
+    }
+  };
+
+
+  const isLoading = isFetchingWeather || isAnalyzingEmotion || isSaving || isFetchingSuggestion;
 
   return (
     <div className="space-y-6">
+      {/* ... Tampilan Cuaca ... */}
       <div className="p-4 border rounded-md bg-muted/20">
         <h3 className="text-lg font-semibold mb-2">Kondisi Lingkungan Saat Jurnal Dibuat</h3>
         {isFetchingWeather && <div className="flex items-center text-sm"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Memuat data cuaca...</div>}
@@ -199,13 +262,50 @@ export default function JournalForm({ userId }: JournalFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="journal-content" className="text-base font-medium">
-          Apa yang kamu rasakan atau pikirkan hari ini?
+        <Label htmlFor="journal-title" className="text-base font-medium">
+          Judul Jurnal
         </Label>
+        <Input
+          id="journal-title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Berikan judul untuk entri jurnalmu..."
+          className="mt-1 text-base"
+          disabled={isLoading}
+        />
+      </div>
+
+      <div>
+        <div className="flex justify-between items-center">
+          <Label htmlFor="journal-content" className="text-base font-medium">
+            Apa yang kamu rasakan atau pikirkan hari ini?
+          </Label>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleGetInspiration}
+            disabled={isLoading || !content.trim()}
+            className="text-xs text-primary hover:bg-primary/10 px-2 py-1"
+          >
+            {isFetchingSuggestion ? (
+              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Lightbulb className="mr-1.5 h-3.5 w-3.5" />
+            )}
+            Dapatkan Inspirasi
+          </Button>
+        </div>
         <Textarea
           id="journal-content"
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e) => {
+            setContent(e.target.value);
+            // Otomatis hapus saran LLM jika pengguna mulai mengetik lagi
+            if (llmSuggestion || llmError) {
+              setLlmSuggestion(null);
+              setLlmError(null);
+            }
+          }}
           placeholder="Tuliskan jurnalmu di sini..."
           rows={8}
           className="mt-1 text-base"
@@ -213,6 +313,42 @@ export default function JournalForm({ userId }: JournalFormProps) {
         />
       </div>
 
+      {/* Tampilkan Saran LLM */}
+      {isFetchingSuggestion && (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-700 flex items-center">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          AI sedang berpikir...
+        </div>
+      )}
+      {llmError && !isFetchingSuggestion && (
+        <Alert variant="destructive" className="mt-2">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error Inspirasi AI</AlertTitle>
+          <AlertDescription>
+            {llmError}
+            <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto -mr-2 -mt-2" onClick={() => setLlmError(null)}>
+              <XCircle className="h-4 w-4" />
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+      {llmSuggestion && !isFetchingSuggestion && (
+        <div className="mt-2 p-4 border rounded-md bg-green-50 border-green-300 text-green-800 relative">
+          <div className="flex justify-between items-start">
+            <h4 className="text-sm font-semibold mb-1 flex items-center">
+              <Lightbulb className="h-4 w-4 mr-1.5 text-green-600" />
+              Saran dari AI:
+            </h4>
+            <Button variant="ghost" size="icon" className="h-7 w-7 absolute top-1 right-1" onClick={() => setLlmSuggestion(null)}>
+              <XCircle className="h-5 w-5 text-green-700 hover:text-green-900" />
+            </Button>
+          </div>
+          <p className="text-sm whitespace-pre-line">{llmSuggestion}</p>
+        </div>
+      )}
+
+
+      {/* ... Pesan Info/Error Global dan Tombol Aksi ... */}
       {infoMessage && !error && (
         <Alert variant="default" className="bg-blue-50 border-blue-300 text-blue-700">
           <Info className="h-4 w-4 !text-blue-700" />
@@ -240,7 +376,7 @@ export default function JournalForm({ userId }: JournalFormProps) {
         </Button>
         <Button
           onClick={handleSaveJournal}
-          disabled={isLoading || !emotionData || !content.trim()}
+          disabled={isLoading || !emotionData || !content.trim() || !title.trim()}
           className="w-full sm:flex-1"
         >
           {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
@@ -248,6 +384,7 @@ export default function JournalForm({ userId }: JournalFormProps) {
         </Button>
       </div>
 
+      {/* ... Tampilan Hasil Analisis Emosi ... */}
       {emotionData && !isAnalyzingEmotion && (
         <div className="mt-6 space-y-3 p-4 border rounded-md bg-muted/30">
           <h3 className="text-lg font-semibold border-b pb-2 mb-2">Hasil Analisis Emosi</h3>
