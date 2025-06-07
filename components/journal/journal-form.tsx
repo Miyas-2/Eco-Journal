@@ -11,7 +11,8 @@ import { Loader2, InfoIcon as Info, AlertCircle, Sparkles, Save, Lightbulb, XCir
 import { WeatherApiResponse, EmotionApiResponse, UserLocation } from '@/types';
 import WeatherDisplay from '@/components/dashboard/weather-display';
 import { Input } from '../ui/input';
-import { GoogleGenAI } from "@google/genai";
+import { simpleMarkdownToHtml } from "@/lib/utils";
+
 
 interface JournalFormProps {
   userId: string;
@@ -236,19 +237,19 @@ export default function JournalForm({ userId }: JournalFormProps) {
 
     let weatherDesc = "";
     if (weatherData) {
-      weatherDesc += `Cuaca: ${weatherData.current.condition.text}, suhu ${weatherData.current.temp_c}°C, kelembapan ${weatherData.current.humidity}%. `;
-      if (weatherData.current.air_quality && weatherData.current.air_quality.pm2_5 !== undefined) {
-        weatherDesc += `Kualitas udara PM2.5: ${weatherData.current.air_quality.pm2_5.toFixed(1)} µg/m³. `;
+      weatherDesc += `Cuaca: ${weatherData.current.condition.text}, suhu ${weatherData.current.temp_c}°C, kelembapan ${weatherData.current.humidity}%, tekanan udara ${weatherData.current.pressure_mb} mb, kecepatan angin ${weatherData.current.wind_kph} km/jam. `;
+      if (weatherData.current.air_quality) {
+        const aq = weatherData.current.air_quality;
+        weatherDesc += `Kualitas udara: PM2.5 ${aq.pm2_5?.toFixed(1) ?? '-'} µg/m³, PM10 ${aq.pm10?.toFixed(1) ?? '-'} µg/m³, CO ${aq.co?.toFixed(1) ?? '-'} µg/m³, NO₂ ${aq.no2?.toFixed(1) ?? '-'} µg/m³, O₃ ${aq.o3?.toFixed(1) ?? '-'} µg/m³, SO₂ ${aq.so2?.toFixed(1) ?? '-'} µg/m³. `;
       }
     }
 
     const llmPrompt = `
-Saya ingin menulis jurnal harian, tapi saya bingung harus mulai dari mana. Berikut data hari ini:
+Saya ingin menulis jurnal harian, tapi saya sedang bingung harus mulai dari mana. Berikut data hari ini:
 ${weatherDesc}
 Isi jurnal saya sejauh ini: "${content}"
 
-Tolong berikan 2-3 pertanyaan reflektif yang hangat dan mudah dijawab, agar saya bisa mulai menulis tentang perasaan atau pengalaman hari ini. Sertakan juga 1 ide atau saran menulis yang sederhana, supaya saya lebih nyaman menuangkan isi hati atau pikiran. 
-Gunakan bahasa yang ramah, suportif, dan tidak menghakimi, seolah-olah kamu adalah teman baik yang ingin membantu saya bercerita. Jawaban singkat saja, langsung ke poin.
+Tolong berikan 2 pertanyaan reflektif yang sederhana dan hangat, agar saya bisa mulai menulis tentang perasaan, pengalaman pribadi, atau pemikiran saya hari ini—baik yang berkaitan dengan diri sendiri, lingkungan, perubahan iklim, maupun inovasi digital untuk keberlanjutan. Sertakan juga 1 ide menulis yang mudah dan personal, supaya saya lebih nyaman menuangkan pikiran atau perasaan saya. Jawaban singkat saja, tanpa markdown atau simbol aneh, dan gunakan bahasa yang ramah seperti teman yang membantu.
 `;
     try {
       const response = await fetch("/api/gemini-inspire", {
@@ -319,10 +320,10 @@ Gunakan bahasa yang ramah, suportif, dan tidak menghakimi, seolah-olah kamu adal
           onChange={(e) => {
             setContent(e.target.value);
             // Otomatis hapus saran LLM jika pengguna mulai mengetik lagi
-            if (llmSuggestion || llmError) {
-              setLlmSuggestion(null);
-              setLlmError(null);
-            }
+            // if (llmSuggestion || llmError) {
+            //   setLlmSuggestion(null);
+            //   setLlmError(null);
+            // }
           }}
           placeholder="Tuliskan jurnalmu di sini..."
           rows={8}
@@ -361,7 +362,10 @@ Gunakan bahasa yang ramah, suportif, dan tidak menghakimi, seolah-olah kamu adal
               <XCircle className="h-5 w-5 text-green-700 hover:text-green-900" />
             </Button>
           </div>
-          <p className="text-sm whitespace-pre-line">{llmSuggestion}</p>
+          <p
+            className="text-sm whitespace-pre-line"
+            dangerouslySetInnerHTML={{ __html: simpleMarkdownToHtml(llmSuggestion || "") }}
+          />
         </div>
       )}
 
