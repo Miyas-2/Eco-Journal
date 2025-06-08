@@ -12,10 +12,25 @@ import { WeatherApiResponse, EmotionApiResponse, UserLocation } from '@/types';
 import WeatherDisplay from '@/components/dashboard/weather-display';
 import { Input } from '../ui/input';
 import { simpleMarkdownToHtml } from "@/lib/utils";
-
+import toast from 'react-hot-toast'; // Pastikan sudah diimport jika belum
+import { Award } from 'lucide-react'; // Untuk toast
 
 interface JournalFormProps {
   userId: string;
+}
+
+interface GamificationResponse {
+  success: boolean;
+  currentStreak?: number;
+  finalTotalPoints?: number;
+  newlyAwardedAchievements?: Array<{
+    name: string;
+    description: string;
+    icon_url: string | null;
+    points_reward: number;
+  }>;
+  pointsEarnedThisEntry?: number;
+  error?: string;
 }
 
 export default function JournalForm({ userId }: JournalFormProps) {
@@ -191,6 +206,7 @@ export default function JournalForm({ userId }: JournalFormProps) {
         }
       }
 
+      // Simpan jurnal ke database
       const { error: insertError } = await supabase
         .from('journal_entries')
         .insert([{
@@ -206,19 +222,54 @@ export default function JournalForm({ userId }: JournalFormProps) {
           location_name: userLocation?.name || weatherData?.location.name,
         }]);
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error("Error inserting journal:", insertError);
+        throw new Error(`Gagal menyimpan jurnal: ${insertError.message}`);
+      }
 
+      // Panggil API Gamifikasi
+      try {
+        const gamificationResponse = await fetch("/api/gamification/update-on-entry", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId,
+            journalDate: new Date().toISOString().split('T')[0],
+          }),
+        });
+
+        const gamificationData: GamificationResponse = await gamificationResponse.json();
+
+        if (gamificationResponse.ok && gamificationData.success) {
+          if (gamificationData.newlyAwardedAchievements && gamificationData.newlyAwardedAchievements.length > 0) {
+            // Simpan achievement ke sessionStorage untuk ditampilkan di halaman berikutnya
+            sessionStorage.setItem('newlyAwardedAchievements', JSON.stringify(gamificationData.newlyAwardedAchievements));
+          }
+        } else {
+          console.warn("Panggilan API Gamifikasi mungkin gagal atau tidak ada achievement baru:", gamificationData.error || "Tidak ada error spesifik");
+        }
+      } catch (gamifError: any) {
+        console.error("Error memanggil API gamifikasi:", gamifError);
+        // Jangan hentikan alur utama jika gamifikasi gagal, cukup catat error
+      }
+
+      // Reset form
       setTitle('');
       setContent('');
       setEmotionData(null);
       setSelectedEmotionId(null);
-      setInfoMessage("Jurnal berhasil disimpan! Mengarahkan ke dashboard...");
-      setTimeout(() => {
-        router.push('/protected');
-      }, 2000);
+      setInfoMessage(null); // Hapus info message di sini
+
+      // Tandai bahwa jurnal berhasil disimpan untuk notifikasi di halaman dashboard
+      sessionStorage.setItem('journalSaveSuccess', 'true');
+
+      router.push('/protected'); // Langsung redirect
 
     } catch (err: any) {
-      setError(err.message || "Terjadi kesalahan saat menyimpan jurnal.");
+      console.error("Error di handleSaveJournal:", err);
+      const errorMessage = err.message || "Terjadi kesalahan saat menyimpan jurnal.";
+      setError(errorMessage);
+      toast.error(errorMessage); // Tampilkan error toast di form jika ada masalah besar
       setInfoMessage(null);
       setIsSaving(false);
     }

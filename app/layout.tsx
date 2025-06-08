@@ -1,7 +1,9 @@
+// filepath: d:\Semester 4\Pemweb\eco-journal\app\layout.tsx
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
+import { Toaster } from 'react-hot-toast'; // <-- IMPORT BARU
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -33,6 +35,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <Toaster position="top-center" reverseOrder={false} /> {/* <-- TAMBAHKAN INI */}
           {children}
         </ThemeProvider>
       </body>

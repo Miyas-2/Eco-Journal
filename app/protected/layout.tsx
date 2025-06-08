@@ -5,6 +5,8 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
 
+import { Toaster } from 'react-hot-toast'; // <-- IMPORT
+
 export default function ProtectedLayout({
   children,
 }: {
@@ -21,6 +23,12 @@ export default function ProtectedLayout({
                 <DeployButton />
               </div>
             </div>
+            <Link href="/protected/profile" className="font-medium hover:underline">
+              Profil & Gamifikasi
+            </Link>
+            <Link href="/protected/" className="font-medium hover:underline">
+              dashboard
+            </Link>
             {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
           </div>
         </nav>
