@@ -13,6 +13,7 @@ interface JournalInsightSectionProps {
   primaryEmotion: string; // Emosi utama yang sudah ditentukan (misal: "Cemas")
   weatherData: WeatherApiResponse | null;
   locationDisplayName: string; // Nama lokasi yang akan ditampilkan ke AI
+  journalCreatedAt: string; // <-- TAMBAHKAN PROPERTI INI
 }
 
 export default function JournalInsightSection({
@@ -23,16 +24,24 @@ export default function JournalInsightSection({
   primaryEmotion,
   weatherData,
   locationDisplayName,
+  journalCreatedAt, // <-- TERIMA PROPERTI INI
 }: JournalInsightSectionProps) {
   const [insight, setInsight] = useState<string | null>(initialInsightText);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasFetchedOnce, setHasFetchedOnce] = useState(!!initialInsightText); // Tandai jika sudah ada insight awal
+  const [hasFetchedOnce, setHasFetchedOnce] = useState(!!initialInsightText);
 
   const handleFetchOrRefreshInsight = async () => {
     setIsLoading(true);
     setError(null);
-    setHasFetchedOnce(true); // Setelah diklik, anggap sudah pernah fetch
+    setHasFetchedOnce(true);
+
+    // Pastikan journalCreatedAt ada sebelum mengirim
+    if (!journalCreatedAt) {
+        setError("Tanggal pembuatan jurnal tidak tersedia. Tidak dapat menghasilkan insight.");
+        setIsLoading(false);
+        return;
+    }
 
     try {
       const response = await fetch(`/api/gemini-daily-insight`, {
@@ -45,6 +54,7 @@ export default function JournalInsightSection({
           emotion: primaryEmotion,
           weatherData,
           locationName: locationDisplayName,
+          journalCreatedAt, // <-- SERTAKAN PROPERTI INI DI BODY
         }),
       });
 
@@ -57,13 +67,11 @@ export default function JournalInsightSection({
     } catch (err: any) {
       console.error("Error fetching/generating insight:", err);
       setError(err.message || "Terjadi kesalahan saat mengambil insight.");
-      // Jangan hapus insight lama jika error, biarkan pengguna melihat yang terakhir berhasil
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Jika ada initialInsightText, langsung tampilkan
   useEffect(() => {
     if (initialInsightText) {
       setInsight(initialInsightText);
@@ -82,7 +90,6 @@ export default function JournalInsightSection({
     ? RefreshCw
     : Lightbulb;
 
-
   return (
     <section className="p-4 border rounded-lg bg-background shadow">
       <div className="flex justify-between items-center mb-3">
@@ -94,17 +101,17 @@ export default function JournalInsightSection({
           variant="outline"
           size="sm"
           onClick={handleFetchOrRefreshInsight}
-          disabled={isLoading || !primaryEmotion || !weatherData} // Nonaktifkan jika data penting tidak ada
-          title={!primaryEmotion || !weatherData ? "Data emosi atau cuaca tidak lengkap" : buttonText}
+          disabled={isLoading || !primaryEmotion || !weatherData || !journalCreatedAt} // Tambahkan !journalCreatedAt ke kondisi disabled
+          title={!primaryEmotion || !weatherData || !journalCreatedAt ? "Data emosi, cuaca, atau tanggal jurnal tidak lengkap" : buttonText}
         >
           <ButtonIcon className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           <span className="ml-2 hidden sm:inline">{buttonText}</span>
         </Button>
       </div>
 
-      {(!primaryEmotion || !weatherData) && !hasFetchedOnce && (
+      {(!primaryEmotion || !weatherData || !journalCreatedAt) && !hasFetchedOnce && ( // Tambahkan !journalCreatedAt
          <p className="text-sm text-muted-foreground italic">
-           Data emosi atau cuaca tidak lengkap untuk menghasilkan insight.
+           Data emosi, cuaca, atau tanggal jurnal tidak lengkap untuk menghasilkan insight.
          </p>
       )}
 

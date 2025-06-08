@@ -16,7 +16,7 @@ export default async function JournalDetailPage({ params }: { params: { id: stri
     redirect("/auth/login");
   }
 
-  const { id: journalId } = params;
+  const { id: journalId } = await params;
   const { data: journal, error: journalError } = await supabase
     .from("journal_entries")
     .select("*, emotions(name)") // emotions(name) untuk emosi manual
@@ -95,6 +95,7 @@ export default async function JournalDetailPage({ params }: { params: { id: stri
           primaryEmotion={primaryEmotionForInsight}
           weatherData={weatherData}
           locationDisplayName={locationDisplayName}
+          journalCreatedAt={journal.created_at}
         />
 
         <section>
