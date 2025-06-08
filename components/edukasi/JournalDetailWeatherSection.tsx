@@ -1,60 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useState } from 'react'; // useState mungkin tidak lagi dibutuhkan jika hanya untuk modal
 import { WeatherApiResponse } from '@/types';
-import { Lightbulb } from 'lucide-react';
-import FunFactModal from './FunFactModal';
+// import { Lightbulb } from 'lucide-react'; // Hapus jika tidak ada lagi Lightbulb yang digunakan
+// import FunFactModal from './FunFactModal'; // HAPUS BARIS INI
 
 interface JournalDetailWeatherSectionProps {
     weatherData: WeatherApiResponse | null;
-    journalCreatedAt: string; // <-- TAMBAHKAN PROPERTI BARU
+    journalCreatedAt: string;
 }
 export default function JournalDetailWeatherSection({ weatherData, journalCreatedAt }: JournalDetailWeatherSectionProps) {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalTitle, setModalTitle] = useState('');
-    const [modalContent, setModalContent] = useState('');
-    const [isLoadingFact, setIsLoadingFact] = useState(false);
+    // HAPUS STATE BERIKUT JIKA HANYA UNTUK MODAL FUNFACT:
+    // const [isModalOpen, setIsModalOpen] = useState(false);
+    // const [modalTitle, setModalTitle] = useState('');
+    // const [modalContent, setModalContent] = useState('');
+    // const [isLoadingFact, setIsLoadingFact] = useState(false);
 
-    const handleShowFact = async (
-        indicatorTypeForTitle: string,
-        value: number | string,
-        unit?: string,
-        generalContextForAI?: string
-    ) => {
-        if (value === undefined || value === null) return;
-
-        let titleDisplay = `Tentang ${indicatorTypeForTitle}`;
-        setModalTitle(titleDisplay);
-        setIsModalOpen(true);
-        setIsLoadingFact(true);
-        setModalContent('');
-
-        try {
-            const response = await fetch('/api/funfact', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    indicatorType: indicatorTypeForTitle,
-                    value,
-                    unit,
-                    locationName: weatherData?.location.name,
-                    generalContext: generalContextForAI || indicatorTypeForTitle,
-                    journalDate: journalCreatedAt, // <-- KIRIM TANGGAL JURNAL
-                }),
-            });
-            const data = await response.json();
-            if (response.ok) {
-                setModalContent(data.fact);
-            } else {
-                setModalContent(data.error || 'Gagal memuat informasi edukasi.');
-            }
-        } catch (error) {
-            setModalContent('Terjadi kesalahan saat mengambil informasi.');
-            console.error("Error fetching fun fact:", error);
-        } finally {
-            setIsLoadingFact(false);
-        }
-    };
+    // HAPUS FUNGSI BERIKUT:
+    // const handleShowFact = async (
+    //     indicatorTypeForTitle: string,
+    //     value: number | string,
+    //     unit?: string,
+    //     generalContextForAI?: string
+    // ) => {
+    //     // ...isi fungsi handleShowFact...
+    // };
 
     if (!weatherData) {
         return <p className="text-sm text-muted-foreground">Data cuaca tidak tersedia untuk jurnal ini.</p>;
@@ -67,7 +37,7 @@ export default function JournalDetailWeatherSection({ weatherData, journalCreate
         label: string,
         value?: number,
         unit?: string,
-        contextForAI?: string,
+        // contextForAI?: string, // Hapus jika hanya untuk funfact
         valueFixed?: number
     ) => {
         if (value === undefined) return null;
@@ -75,11 +45,13 @@ export default function JournalDetailWeatherSection({ weatherData, journalCreate
             <div className="bg-white p-2 rounded border">
                 <div className="font-medium flex items-center justify-between">
                     {label}
-                    <Lightbulb
+                    {/* HAPUS LIGHTBULB ICON DARI SINI 
+                       <Lightbulb
                         className="h-4 w-4 text-yellow-400 hover:text-yellow-500 cursor-pointer ml-1 transition-colors"
                         onClick={() => handleShowFact(label, value, unit, contextForAI || label)}
                         aria-label={`Info tentang ${label}`}
                     />
+                    */}
                 </div>
                 <div>{value.toFixed(valueFixed !== undefined ? valueFixed : 1)} {unit}</div>
             </div>
@@ -90,8 +62,8 @@ export default function JournalDetailWeatherSection({ weatherData, journalCreate
         label: string,
         indexValue?: number,
         indexText?: string,
-        bgColorClass?: string,
-        contextForAI?: string
+        bgColorClass?: string
+        // contextForAI?: string // Hapus jika hanya untuk funfact
     ) => {
         if (indexValue === undefined) return null;
         return (
@@ -99,11 +71,7 @@ export default function JournalDetailWeatherSection({ weatherData, journalCreate
                 <span className="font-medium">{label}:</span>
                 <span className={`px-2 py-1 text-xs rounded text-white ${bgColorClass}`}>
                     {indexValue} - {indexText}
-                    <Lightbulb
-                        className="h-3 w-3 text-white hover:text-gray-200 cursor-pointer ml-1 inline-block transition-colors"
-                        onClick={() => handleShowFact(label, indexValue, undefined, contextForAI || label)}
-                        aria-label={`Info tentang ${label}`}
-                    />
+                    {/* HAPUS LIGHTBULB ICON DARI SINI */}
                 </span>
             </div>
         );
@@ -116,6 +84,7 @@ export default function JournalDetailWeatherSection({ weatherData, journalCreate
                     <span className="mr-2">🌤️</span> Data Cuaca & Lingkungan Saat Itu
                 </h2>
                 <div className="bg-muted/30 p-4 rounded-md text-sm space-y-3">
+                    {/* ... (bagian lokasi tetap sama) ... */}
                     <div className="border-b pb-2">
                         <h4 className="font-medium text-base mb-1">📍 Lokasi</h4>
                         <div><strong>Nama:</strong> {location.name}</div>
@@ -134,28 +103,22 @@ export default function JournalDetailWeatherSection({ weatherData, journalCreate
                             <div><strong>Visibilitas:</strong> {current.vis_km} km</div>
                             <div className="flex items-center justify-between">
                                 <span><strong>Indeks UV:</strong> {current.uv}</span>
-                                <Lightbulb
-                                    className="h-4 w-4 text-yellow-400 hover:text-yellow-500 cursor-pointer ml-1 transition-colors"
-                                    onClick={() => handleShowFact("Indeks UV", current.uv, undefined, "Indeks UltraViolet (UV) dan dampaknya bagi kulit dan mata")}
-                                    aria-label="Info tentang Indeks UV"
-                                />
+                                {/* HAPUS LIGHTBULB ICON DARI SINI */}
                             </div>
                         </div>
                     </div>
 
-                    {/* Informasi Angin (jika ingin diaktifkan kembali dan diberi edukasi) */}
-                    {/* <div className="border-b pb-2">...</div> */}
-
+                    {/* ... (bagian kualitas udara tetap sama, tapi tanpa ikon Lightbulb di dalamnya) ... */}
                     {airQuality && (
                         <div>
                             <h4 className="font-medium text-base mb-1">🏭 Kualitas Udara</h4>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs mb-2">
-                                {renderIndicatorCard("PM2.5", airQuality.pm2_5, "µg/m³", "Partikulat Halus PM2.5 dan dampaknya bagi kesehatan")}
-                                {renderIndicatorCard("PM10", airQuality.pm10, "µg/m³", "Partikulat Kasar PM10 dan dampaknya bagi kesehatan")}
-                                {renderIndicatorCard("CO", airQuality.co, "µg/m³", "Gas Karbon Monoksida (CO) dan dampaknya bagi kesehatan", 2)}
-                                {renderIndicatorCard("NO₂", airQuality.no2, "µg/m³", "Gas Nitrogen Dioksida (NO₂) dan dampaknya bagi lingkungan dan kesehatan", 2)}
-                                {renderIndicatorCard("O₃", airQuality.o3, "µg/m³", "Gas Ozon Permukaan (O₃) dan dampaknya bagi kesehatan", 2)}
-                                {renderIndicatorCard("SO₂", airQuality.so2, "µg/m³", "Gas Sulfur Dioksida (SO₂) dan dampaknya bagi lingkungan dan kesehatan", 2)}
+                                {renderIndicatorCard("PM2.5", airQuality.pm2_5, "µg/m³")}
+                                {renderIndicatorCard("PM10", airQuality.pm10, "µg/m³")}
+                                {renderIndicatorCard("CO", airQuality.co, "µg/m³", 2)}
+                                {renderIndicatorCard("NO₂", airQuality.no2, "µg/m³", 2)}
+                                {renderIndicatorCard("O₃", airQuality.o3, "µg/m³", 2)}
+                                {renderIndicatorCard("SO₂", airQuality.so2, "µg/m³", 2)}
                             </div>
 
                             <div className="mt-2 text-xs space-y-2">
@@ -166,18 +129,14 @@ export default function JournalDetailWeatherSection({ weatherData, journalCreate
                                             airQuality.pm2_5 <= 35.4 ? 'bg-yellow-500 text-black' :
                                                 airQuality.pm2_5 <= 55.4 ? 'bg-orange-500' :
                                                     airQuality.pm2_5 <= 150.4 ? 'bg-red-500' :
-                                                        airQuality.pm2_5 <= 250.4 ? 'bg-purple-600' : 'bg-maroon-700' // Sesuaikan dengan standar AQI PM2.5
+                                                        airQuality.pm2_5 <= 250.4 ? 'bg-purple-600' : 'bg-maroon-700'
                                             }`}>
                                             {airQuality.pm2_5 <= 12 ? 'Baik' :
                                                 airQuality.pm2_5 <= 35.4 ? 'Sedang' :
                                                     airQuality.pm2_5 <= 55.4 ? 'Tidak Sehat (Kelompok Sensitif)' :
                                                         airQuality.pm2_5 <= 150.4 ? 'Tidak Sehat' :
                                                             airQuality.pm2_5 <= 250.4 ? 'Sangat Tidak Sehat' : 'Berbahaya'}
-                                            <Lightbulb
-                                                className="h-3 w-3 text-white hover:text-gray-200 cursor-pointer ml-1 inline-block transition-colors"
-                                                onClick={() => handleShowFact("Status Kualitas Udara", airQuality.pm2_5!, "berdasarkan PM2.5", "Status Kualitas Udara berdasarkan PM2.5 dan artinya bagi aktivitas luar ruangan")}
-                                                aria-label="Info tentang Status Kualitas Udara"
-                                            />
+                                            {/* HAPUS LIGHTBULB ICON DARI SINI */}
                                         </span>
                                     </div>
                                 )}
@@ -199,8 +158,7 @@ export default function JournalDetailWeatherSection({ weatherData, journalCreate
                                                     airQuality['us-epa-index'] <= 3 ? 'bg-orange-500' :
                                                         airQuality['us-epa-index'] <= 4 ? 'bg-red-500' :
                                                             airQuality['us-epa-index'] <= 5 ? 'bg-purple-600' : 'bg-maroon-700'
-                                        ) : '',
-                                        "Indeks Kualitas Udara standar US EPA dan artinya"
+                                        ) : ''
                                     )}
                                     {renderIndexDisplay(
                                         "UK DEFRA Index",
@@ -214,8 +172,7 @@ export default function JournalDetailWeatherSection({ weatherData, journalCreate
                                             airQuality['gb-defra-index'] <= 3 ? 'bg-green-500' :
                                                 airQuality['gb-defra-index'] <= 6 ? 'bg-yellow-500 text-black' :
                                                     airQuality['gb-defra-index'] <= 9 ? 'bg-orange-500' : 'bg-red-500'
-                                        ) : '',
-                                        "Indeks Kualitas Udara standar UK DEFRA dan artinya"
+                                        ) : ''
                                     )}
                                 </div>
                             </div>
@@ -223,13 +180,14 @@ export default function JournalDetailWeatherSection({ weatherData, journalCreate
                     )}
                 </div>
             </section>
-            <FunFactModal
+            {/* HAPUS BAGIAN PEMANGGILAN FUNFACTMODAL BERIKUT: */}
+            {/* <FunFactModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 title={modalTitle}
                 content={modalContent}
                 isLoading={isLoadingFact}
-            />
+            /> */}
         </>
     );
 }
