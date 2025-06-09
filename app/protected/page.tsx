@@ -4,6 +4,10 @@ import { InfoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import DashboardNotifications from "@/components/dashboard/DashboardNotifications"; // <-- IMPORT BARU
+import MoodTrendChart from "@/components/dashboard/MoodTrendChart";
+import MoodAirCorrelationChart from "@/components/dashboard/MoodAirCorrelationChart";
+import EmotionCompositionPie from "@/components/dashboard/EmotionCompositionPie";
+import JournalWordCloud from "@/components/dashboard/JournalWordCloud";
 
 export default async function ProtectedDashboardPage() {
   const supabase = await createClient();
@@ -17,7 +21,7 @@ export default async function ProtectedDashboardPage() {
     <>
       {/* Komponen ini akan menangani tampilan toast */}
       <DashboardNotifications /> {/* <-- RENDER DI SINI */}
-      
+
       <div className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
           <h1 className="text-2xl sm:text-3xl font-bold text-center sm:text-left">
@@ -43,6 +47,16 @@ export default async function ProtectedDashboardPage() {
           <Button asChild variant="secondary" size="lg" className="bg-white text-primary hover:bg-gray-100">
             <Link href="/protected/journal/new">Buat Jurnal Baru</Link>
           </Button>
+        </div>
+
+        <DashboardNotifications />
+        <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+          {/* ...header dan welcome... */}
+          <MoodTrendChart />
+          <MoodAirCorrelationChart />
+          <EmotionCompositionPie />
+          <JournalWordCloud />
+          {/* ...bagian lain dashboard... */}
         </div>
 
         <div>

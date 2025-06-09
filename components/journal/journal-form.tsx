@@ -33,6 +33,8 @@ interface GamificationResponse {
   error?: string;
 }
 
+
+
 export default function JournalForm({ userId }: JournalFormProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -52,11 +54,13 @@ export default function JournalForm({ userId }: JournalFormProps) {
   const [llmError, setLlmError] = useState<string | null>(null);
 
   type EmotionSource = 'ai' | 'manual';
-  type Emotion = { id: number; name: string };
+  type Emotion = { id: number; name: string; sentiment_score: number | null };
 
   const [emotionSource, setEmotionSource] = useState<EmotionSource>('ai');
   const [emotions, setEmotions] = useState<Emotion[]>([]);
   const [selectedEmotionId, setSelectedEmotionId] = useState<number | null>(null);
+
+  const [emotionsMap, setEmotionsMap] = useState<Map<string, number | null>>(new Map());
 
 
   const supabase = createClient();
@@ -133,11 +137,29 @@ export default function JournalForm({ userId }: JournalFormProps) {
     fetchInitialWeather();
 
     const fetchEmotions = async () => {
-      const { data } = await supabase.from('emotions').select('*');
-      setEmotions(data || []);
+      // Pastikan memilih kolom sentiment_score (atau nama kolom valence Anda)
+      const { data, error: fetchError } = await supabase
+        .from('emotions')
+        .select('id, name, sentiment_score'); // Ganti 'sentiment_score' jika nama kolom Anda berbeda
+
+      if (fetchError) {
+        console.error("Error fetching emotions:", fetchError);
+        setError("Gagal memuat daftar emosi.");
+      } else if (data) {
+        setEmotions(data as Emotion[]);
+        const newMap = new Map<string, number | null>();
+        data.forEach(emotion => {
+          if (emotion.name) { // Pastikan nama emosi ada
+            const normalizedName = emotion.name.charAt(0).toUpperCase() + emotion.name.slice(1).toLowerCase();
+            // Simpan sentiment_score, pastikan itu angka atau null jika memang bisa null di DB
+            newMap.set(normalizedName, (typeof emotion.sentiment_score === 'number') ? emotion.sentiment_score : null);
+          }
+        });
+        setEmotionsMap(newMap);
+      }
     };
     fetchEmotions();
-  }, []); // Hanya dijalankan sekali saat mount
+  }, []);
 
   const handleAnalyzeEmotion = async () => {
     // ... existing code ...
@@ -172,7 +194,7 @@ export default function JournalForm({ userId }: JournalFormProps) {
     }
   };
 
-  const handleSaveJournal = async () => {
+const handleSaveJournal = async () => {
     if (!title.trim()) {
       setError("Judul jurnal tidak boleh kosong.");
       return;
@@ -195,11 +217,51 @@ export default function JournalForm({ userId }: JournalFormProps) {
     setInfoMessage("Menyimpan jurnal...");
 
     try {
-      let aiEmotionId: number | null = null;
+      let aiEmotionId: number | null = null; // Untuk kolom 'emotion_id'
+      let calculatedMoodScore: number | null = null;
+
       if (emotionSource === 'ai' && emotionData) {
         const topEmotionLabel = emotionData.top_prediction?.label;
-        aiEmotionId = await getEmotionIdFromDb(topEmotionLabel);
-        if (!aiEmotionId && topEmotionLabel) {
+        if (topEmotionLabel) {
+          aiEmotionId = await getEmotionIdFromDb(topEmotionLabel);
+          if (!aiEmotionId) { // Error sudah di-set oleh getEmotionIdFromDb
+            setIsSaving(false);
+            setInfoMessage(null);
+            return;
+          }
+        }
+
+        // Hitung mood_score berdasarkan all_predictions (sesuai contoh Anda)
+        let sumOfProducts = 0;
+        let foundAnyValenceForAI = false;
+        if (emotionData.all_predictions) {
+          for (const [emotionName, confidenceFromAI] of Object.entries(emotionData.all_predictions)) {
+            const normalizedEmotionName = emotionName.charAt(0).toUpperCase() + emotionName.slice(1).toLowerCase();
+            const valence = emotionsMap.get(normalizedEmotionName);
+
+            if (typeof valence === 'number' && typeof confidenceFromAI === 'number') {
+              sumOfProducts += valence * confidenceFromAI;
+              foundAnyValenceForAI = true;
+            } else {
+              console.warn(`Valence untuk emosi AI "${normalizedEmotionName}" tidak ditemukan di DB atau confidence tidak valid. Dilewati.`);
+            }
+          }
+        }
+
+        if (foundAnyValenceForAI) {
+          calculatedMoodScore = sumOfProducts / 100;
+        } else {
+          // Jika tidak ada valence yang cocok, mood_score bisa null atau 0, tergantung kebijakan Anda
+          calculatedMoodScore = null;
+          console.warn("Tidak ada valence yang cocok ditemukan untuk emosi dari AI, mood_score di-set ke null.");
+        }
+
+      } else if (emotionSource === 'manual' && selectedEmotionId) {
+        const selectedEmotionObject = emotions.find(e => e.id === selectedEmotionId);
+        if (selectedEmotionObject && typeof selectedEmotionObject.sentiment_score === 'number') {
+          calculatedMoodScore = selectedEmotionObject.sentiment_score;
+        } else {
+          setError("Emosi manual yang dipilih tidak valid atau tidak memiliki skor sentimen.");
           setIsSaving(false);
           setInfoMessage(null);
           return;
@@ -207,20 +269,23 @@ export default function JournalForm({ userId }: JournalFormProps) {
       }
 
       // Simpan jurnal ke database
+      const journalEntryData = {
+        user_id: userId,
+        title,
+        content,
+        weather_data: weatherData,
+        emotion_analysis: emotionSource === 'ai' ? emotionData : null,
+        emotion_id: emotionSource === 'manual' ? selectedEmotionId : aiEmotionId,
+        emotion_source: emotionSource,
+        latitude: userLocation?.latitude,
+        longitude: userLocation?.longitude,
+        location_name: userLocation?.name || weatherData?.location.name,
+        mood_score: calculatedMoodScore, // Tambahkan mood_score yang sudah dihitung
+      };
+
       const { error: insertError } = await supabase
         .from('journal_entries')
-        .insert([{
-          user_id: userId,
-          title,
-          content,
-          weather_data: weatherData,
-          emotion_analysis: emotionSource === 'ai' ? emotionData : null,
-          emotion_id: emotionSource === 'manual' ? selectedEmotionId : aiEmotionId,
-          emotion_source: emotionSource,
-          latitude: userLocation?.latitude,
-          longitude: userLocation?.longitude,
-          location_name: userLocation?.name || weatherData?.location.name,
-        }]);
+        .insert([journalEntryData]);
 
       if (insertError) {
         console.error("Error inserting journal:", insertError);
@@ -235,6 +300,8 @@ export default function JournalForm({ userId }: JournalFormProps) {
           body: JSON.stringify({
             userId,
             journalDate: new Date().toISOString().split('T')[0],
+            // Anda bisa mengirim mood_score ke API gamifikasi jika diperlukan di sana
+            // moodScore: calculatedMoodScore
           }),
         });
 
@@ -242,7 +309,6 @@ export default function JournalForm({ userId }: JournalFormProps) {
 
         if (gamificationResponse.ok && gamificationData.success) {
           if (gamificationData.newlyAwardedAchievements && gamificationData.newlyAwardedAchievements.length > 0) {
-            // Simpan achievement ke sessionStorage untuk ditampilkan di halaman berikutnya
             sessionStorage.setItem('newlyAwardedAchievements', JSON.stringify(gamificationData.newlyAwardedAchievements));
           }
         } else {
@@ -250,7 +316,6 @@ export default function JournalForm({ userId }: JournalFormProps) {
         }
       } catch (gamifError: any) {
         console.error("Error memanggil API gamifikasi:", gamifError);
-        // Jangan hentikan alur utama jika gamifikasi gagal, cukup catat error
       }
 
       // Reset form
@@ -258,18 +323,15 @@ export default function JournalForm({ userId }: JournalFormProps) {
       setContent('');
       setEmotionData(null);
       setSelectedEmotionId(null);
-      setInfoMessage(null); // Hapus info message di sini
-
-      // Tandai bahwa jurnal berhasil disimpan untuk notifikasi di halaman dashboard
+      setInfoMessage(null);
       sessionStorage.setItem('journalSaveSuccess', 'true');
-
-      router.push('/protected'); // Langsung redirect
+      router.push('/protected');
 
     } catch (err: any) {
       console.error("Error di handleSaveJournal:", err);
       const errorMessage = err.message || "Terjadi kesalahan saat menyimpan jurnal.";
       setError(errorMessage);
-      toast.error(errorMessage); // Tampilkan error toast di form jika ada masalah besar
+      toast.error(errorMessage);
       setInfoMessage(null);
       setIsSaving(false);
     }
@@ -419,8 +481,6 @@ Tolong berikan 2 pertanyaan reflektif yang sederhana dan hangat, agar saya bisa 
           />
         </div>
       )}
-
-
       {/* ... Pesan Info/Error Global dan Tombol Aksi ... */}
       {infoMessage && !error && (
         <Alert variant="default" className="bg-blue-50 border-blue-300 text-blue-700">
