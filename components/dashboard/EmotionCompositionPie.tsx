@@ -1,10 +1,26 @@
-'use client';
+"use client";
 import { useEffect, useState } from "react";
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import { Loader2 } from "lucide-react";
 
 const COLORS = [
-  "#22c55e", "#3b82f6", "#f59e42", "#ef4444", "#a855f7", "#eab308", "#14b8a6", "#6366f1", "#f43f5e", "#64748b"
+  "#22c55e",
+  "#3b82f6",
+  "#f59e42",
+  "#ef4444",
+  "#a855f7",
+  "#eab308",
+  "#14b8a6",
+  "#6366f1",
+  "#f43f5e",
+  "#64748b",
 ];
 
 type EmotionData = {
@@ -14,15 +30,15 @@ type EmotionData = {
 };
 
 export default function EmotionCompositionPie() {
-  const [range, setRange] = useState<'7' | '30' | 'all'>('30');
+  const [range, setRange] = useState<"7" | "30" | "all">("30");
   const [data, setData] = useState<EmotionData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
     fetch(`/api/dashboard/emotion-composition?range=${range}`)
-      .then(res => res.json())
-      .then(res => setData(res.data || []))
+      .then((res) => res.json())
+      .then((res) => setData(res.data || []))
       .finally(() => setLoading(false));
   }, [range]);
 
@@ -33,7 +49,7 @@ export default function EmotionCompositionPie() {
         <select
           className="border rounded px-2 py-1 text-sm"
           value={range}
-          onChange={e => setRange(e.target.value as '7' | '30' | 'all')}
+          onChange={(e) => setRange(e.target.value as "7" | "30" | "all")}
         >
           <option value="7">7 Hari</option>
           <option value="30">30 Hari</option>
@@ -45,7 +61,9 @@ export default function EmotionCompositionPie() {
           <Loader2 className="animate-spin mr-2" /> Memuat grafik...
         </div>
       ) : data.length === 0 ? (
-        <div className="text-center text-muted-foreground py-8">Belum ada data emosi untuk ditampilkan.</div>
+        <div className="text-center text-muted-foreground py-8">
+          Belum ada data emosi untuk ditampilkan.
+        </div>
       ) : (
         <ResponsiveContainer width="100%" height={320}>
           <PieChart>
@@ -66,10 +84,11 @@ export default function EmotionCompositionPie() {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: any, name: string, props: any) =>
-                [`${value}%`, "Persentase"]
-              }
-              labelFormatter={label => `Emosi: ${label}`}
+              formatter={(value: any, name: string, props: any) => [
+                `${value}%`,
+                "Persentase",
+              ]}
+              labelFormatter={(label) => `Emosi: ${label}`}
             />
             <Legend />
           </PieChart>
