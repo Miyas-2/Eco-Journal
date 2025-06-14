@@ -1,12 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ListChecks, Smile, CalendarDays } from "lucide-react";
+import { ArrowLeft, ListChecks, Smile, CalendarDays, TrendingUp, TrendingDown, MinusCircle, Pencil } from "lucide-react"; // IMPORT ICON BARU
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { WeatherApiResponse, EmotionApiResponse } from "@/types"; // Pastikan path ini benar
 import JournalDetailWeatherSection from "@/components/edukasi/JournalDetailWeatherSection"; // Jika masih digunakan
-import JournalInsightSection from "@/components/journal/JournalInsightSection"; // IMPORT BARU
+import JournalInsightSection from "@/components/journal/JournalInsightSection";
 
 export default async function JournalDetailPage({ params }: { params: { id: string } }) {
   const supabase = await createClient();
@@ -19,7 +19,7 @@ export default async function JournalDetailPage({ params }: { params: { id: stri
   const { id: journalId } = await params;
   const { data: journal, error: journalError } = await supabase
     .from("journal_entries")
-    .select("*, emotions(name)") // emotions(name) untuk emosi manual
+    .select("*, emotions(name)") // emotions(name) untuk emosi manual, mood_score sudah termasuk di '*'
     .eq("id", journalId)
     .eq("user_id", user.id)
     .single();
@@ -29,23 +29,20 @@ export default async function JournalDetailPage({ params }: { params: { id: stri
     redirect("/protected/journal/history?error=notfound");
   }
 
-  // Ambil insight awal jika ada dari tabel journal_insights
   const { data: initialInsightData, error: insightError } = await supabase
     .from('journal_insights')
     .select('insight_text')
     .eq('journal_id', journal.id)
-    .eq('user_id', user.id) // Pastikan user hanya bisa akses insightnya sendiri
+    .eq('user_id', user.id)
     .single();
 
-  // PGRST116 berarti 'single row not found', ini bukan error fatal jika insight belum ada
   if (insightError && insightError.code !== 'PGRST116') {
     console.error("Error fetching initial insight:", insightError.message);
   }
 
   const weatherData = journal.weather_data as WeatherApiResponse | null;
-  const emotionAnalysisData = journal.emotion_analysis as EmotionApiResponse | null; // Data dari analisis AI
+  const emotionAnalysisData = journal.emotion_analysis as EmotionApiResponse | null;
 
-  // Tentukan emosi utama untuk dikirim ke insight generator
   let primaryEmotionForInsight: string = "tidak diketahui";
   if (journal.emotion_source === 'ai' && emotionAnalysisData?.top_prediction?.label) {
     primaryEmotionForInsight = emotionAnalysisData.top_prediction.label;
@@ -53,8 +50,56 @@ export default async function JournalDetailPage({ params }: { params: { id: stri
     primaryEmotionForInsight = journal.emotions.name;
   }
 
-  // Tentukan nama lokasi yang akan ditampilkan
   const locationDisplayName = journal.location_name || weatherData?.location.name || "lokasi tidak diketahui";
+
+  // Helper untuk tampilan Mood Score
+  const getMoodScoreDisplay = (score: number | null | undefined) => {
+    if (score === null || score === undefined) {
+      return {
+        label: "Tidak Ada Data",
+        color: "text-gray-500",
+        bgColor: "bg-gray-100",
+        Icon: MinusCircle,
+        description: "Mood score tidak tersedia untuk entri ini.",
+        barClass: "bg-gray-300",
+        barWidth: "0%",
+        barOffset: "50%" // Tengah, tidak ada bar
+      };
+    }
+    let label, color, bgColor, Icon, description;
+    if (score >= 0.5) {
+      label = "Sangat Positif"; color = "text-green-600"; bgColor = "bg-green-100"; Icon = TrendingUp;
+      description = "Anda merasa sangat positif dan bersemangat!";
+    } else if (score >= 0.1) {
+      label = "Positif"; color = "text-emerald-600"; bgColor = "bg-emerald-100"; Icon = TrendingUp;
+      description = "Anda dalam suasana hati yang baik.";
+    } else if (score > -0.1) {
+      label = "Netral"; color = "text-yellow-600"; bgColor = "bg-yellow-100"; Icon = MinusCircle;
+      description = "Suasana hati Anda seimbang.";
+    } else if (score > -0.5) {
+      label = "Negatif"; color = "text-orange-600"; bgColor = "bg-orange-100"; Icon = TrendingDown;
+      description = "Anda merasa sedikit kurang baik atau tertekan.";
+    } else {
+      label = "Sangat Negatif"; color = "text-red-600"; bgColor = "bg-red-100"; Icon = TrendingDown;
+      description = "Anda merasa sangat negatif atau sedih.";
+    }
+
+    const barPercentage = (score + 1) * 50; // 0% at -1, 50% at 0, 100% at 1
+
+    return {
+      label,
+      color,
+      bgColor,
+      Icon,
+      description,
+      barClass: score >= 0 ? 'bg-green-500' : 'bg-red-500',
+      barWidth: `${Math.abs(score) * 50}%`,
+      barOffset: score >= 0 ? '50%' : `${50 - (Math.abs(score) * 50)}%`
+    };
+  };
+
+  const moodDisplay = getMoodScoreDisplay(journal.mood_score);
+  const MoodIcon = moodDisplay.Icon;
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -68,7 +113,7 @@ export default async function JournalDetailPage({ params }: { params: { id: stri
       </div>
       <article className="bg-card p-6 sm:p-8 rounded-lg shadow-md border space-y-6">
         <header className="border-b pb-4 mb-6">
-          <div className="flex justify-between items-start">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-1">
                 {journal.title || <span className="italic">Tanpa Judul</span>}
@@ -78,15 +123,63 @@ export default async function JournalDetailPage({ params }: { params: { id: stri
                 <span>{new Date(journal.created_at).toLocaleString("id-ID", { dateStyle: 'full', timeStyle: 'short' })}</span>
               </div>
             </div>
-            {primaryEmotionForInsight !== "tidak diketahui" && (
-              <Badge variant="outline" className="text-sm whitespace-nowrap">
-                Emosi: {primaryEmotionForInsight}
-              </Badge>
-            )}
+            <div className="flex flex-col items-start sm:items-end gap-2 mt-2 sm:mt-0">
+              {primaryEmotionForInsight !== "tidak diketahui" && (
+                <Badge variant="outline" className="text-sm whitespace-nowrap">
+                  Emosi: {primaryEmotionForInsight}
+                </Badge>
+              )}
+              {/* Mood Score Badge */}
+              <div className={`${moodDisplay.bgColor} ${moodDisplay.color} px-3 py-1.5 rounded-md border text-xs sm:text-sm font-medium flex items-center gap-2 self-start sm:self-auto`}>
+                <MoodIcon className="h-4 w-4" />
+                <span>Mood: {moodDisplay.label} ({journal.mood_score !== null && journal.mood_score !== undefined ? journal.mood_score.toFixed(2) : 'N/A'})</span>
+              </div>
+            </div>
           </div>
         </header>
 
-        {/* Bagian Insight Harian Terintegrasi */}
+        {/* Bagian Mood Score Interaktif */}
+        <section className="p-4 rounded-lg border bg-gradient-to-br from-slate-50 via-gray-50 to-sky-50 dark:from-slate-800 dark:via-gray-800 dark:to-sky-900">
+          <h2 className="text-xl font-semibold mb-3 flex items-center">
+            <MoodIcon className={`h-5 w-5 mr-2 ${moodDisplay.color}`} />
+            Skor Mood Jurnal
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+            <div className={`md:col-span-1 p-3 rounded-md ${moodDisplay.bgColor} text-center`}>
+              <p className={`text-3xl font-bold ${moodDisplay.color}`}>
+                {journal.mood_score !== null && journal.mood_score !== undefined ? journal.mood_score.toFixed(2) : "N/A"}
+              </p>
+              <p className={`text-sm font-medium ${moodDisplay.color}`}>{moodDisplay.label}</p>
+            </div>
+            <div className="md:col-span-2">
+              <p className="text-sm text-muted-foreground mb-1">Visualisasi Skor (-1.0 s/d +1.0):</p>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3.5 relative overflow-hidden">
+                <div className="absolute top-0 left-1/2 w-px h-full bg-gray-400 dark:bg-gray-500 z-10"></div>
+                {journal.mood_score !== null && journal.mood_score !== undefined && (
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ease-out ${moodDisplay.barClass}`}
+                    style={{
+                      width: moodDisplay.barWidth,
+                      marginLeft: moodDisplay.barOffset,
+                    }}
+                  ></div>
+                )}
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground mt-1 px-1">
+                <span>Sangat Negatif</span>
+                <span>Netral</span>
+                <span>Sangat Positif</span>
+              </div>
+              <p className="text-sm mt-3">{moodDisplay.description}</p>
+              {journal.emotion_source && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Sumber skor: {journal.emotion_source === 'ai' ? 'Analisis AI Otomatis' : 'Pilihan Emosi Manual'}
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
+
         <JournalInsightSection
           initialInsightText={initialInsightData?.insight_text || null}
           journalId={journal.id}
@@ -100,24 +193,22 @@ export default async function JournalDetailPage({ params }: { params: { id: stri
 
         <section>
           <h2 className="text-xl font-semibold mb-2">Isi Jurnal</h2>
-          <div className="prose prose-sm sm:prose-base max-w-none bg-muted/30 p-4 rounded-md whitespace-pre-line">
+          <div className="prose prose-sm sm:prose-base max-w-none bg-muted/30 p-4 rounded-md whitespace-pre-line dark:bg-slate-800">
             {journal.content || <p className="italic">Tidak ada konten jurnal.</p>}
           </div>
         </section>
 
-        {/* Tampilkan detail cuaca jika masih relevan atau diinginkan */}
         {weatherData && (
-            <JournalDetailWeatherSection
-                weatherData={weatherData}
-                journalCreatedAt={journal.created_at}
-            />
+          <JournalDetailWeatherSection
+            weatherData={weatherData}
+            journalCreatedAt={journal.created_at}
+          />
         )}
 
-        {/* Detail Analisis Emosi (AI) jika sumbernya AI */}
         {journal.emotion_source === "ai" && emotionAnalysisData && (
           <section>
             <h2 className="text-xl font-semibold mb-2 flex items-center"><ListChecks className="h-5 w-5 mr-2 text-primary" /> Detail Analisis Emosi (AI)</h2>
-            <div className="bg-muted/30 p-4 rounded-md text-sm">
+            <div className="bg-muted/30 p-4 rounded-md text-sm dark:bg-slate-800">
               <p className="mb-1">Emosi Dominan (AI): <strong>{emotionAnalysisData.top_prediction.label}</strong> (Keyakinan: {emotionAnalysisData.top_prediction.confidence.toFixed(2)}%)</p>
               <h4 className="font-medium mt-3 mb-1 text-xs">Semua Emosi Terdeteksi (AI):</h4>
               <ul className="list-disc list-inside pl-1 grid grid-cols-2 sm:grid-cols-3 gap-x-2 text-xs">
@@ -131,11 +222,10 @@ export default async function JournalDetailPage({ params }: { params: { id: stri
           </section>
         )}
 
-        {/* Jika emosi manual, tampilkan emosi pilihan */}
         {journal.emotion_source === "manual" && journal.emotions?.name && (
           <section>
             <h2 className="text-xl font-semibold mb-2 flex items-center"><Smile className="h-5 w-5 mr-2 text-primary" /> Emosi Pilihanmu</h2>
-            <div className="bg-muted/30 p-4 rounded-md text-sm">
+            <div className="bg-muted/30 p-4 rounded-md text-sm dark:bg-slate-800">
               <p>Emosi utama yang kamu pilih: <strong>{journal.emotions.name}</strong></p>
             </div>
           </section>
