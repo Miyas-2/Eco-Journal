@@ -35,7 +35,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Toaster position="top-center" reverseOrder={false} /> {/* <-- TAMBAHKAN INI */}
+          <Toaster position="top-center" reverseOrder={false} /> 
           {children}
         </ThemeProvider>
       </body>
