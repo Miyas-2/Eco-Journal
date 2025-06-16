@@ -1,9 +1,15 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+'use client';
+
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { DynamicLucideIcon } from "@/components/ui/dynamic-lucide-icon";
-import { Award, BarChart3, Coins, UserCircle, CheckCircle2, Circle, Trophy, Target } from "lucide-react"; // Tambahkan Trophy dan Target
-import { CalendarDays } from "lucide-react"; // Tambahkan CalendarDays untuk judul section
+import { Award, BarChart3, Coins, UserCircle, CheckCircle2, Circle, Trophy, Target, Edit3 } from "lucide-react";
+import EditDisplayNameModal from "@/components/profile/edit-display-name-modal";
+import { User } from "@supabase/supabase-js";
+import toast from "react-hot-toast";
 
 // Definisikan tipe untuk data yang diambil agar lebih jelas
 interface AchievementData {
@@ -33,72 +39,120 @@ interface UserProfileData {
     last_entry_date: string | null;
 }
 
+export default function ProfilePage() {
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfileData | null>(null);
+  const [earnedAchievements, setEarnedAchievements] = useState<DisplayAchievement[]>([]);
+  const [unearnedAchievements, setUnearnedAchievements] = useState<DisplayAchievement[]>([]);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [displayName, setDisplayName] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
 
-export default async function ProfilePage() {
-  const supabase = await createClient();
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const supabase = createClient();
+  const router = useRouter();
 
-  if (userError || !user) {
-    console.error("User not authenticated or error fetching user:", userError);
-    redirect("/auth/login");
-  }
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Get user
+        const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !currentUser) {
+          console.error("User not authenticated or error fetching user:", userError);
+          router.push('/auth/login');
+          return;
+        }
 
-  // Ambil profil user
-  const { data: profile, error: profileError } = await supabase
-    .from("user_profiles")
-    .select("user_id, total_points, current_streak, last_entry_date")
-    .eq("user_id", user.id)
-    .single<UserProfileData>();
+        setUser(currentUser);
+        setDisplayName(currentUser.user_metadata?.display_name || currentUser.email?.split('@')[0] || 'User');
 
-  if (profileError && profileError.code !== 'PGRST116') {
-    console.error("Error fetching profile:", profileError.message);
-  }
+        // Ambil profil user
+        const { data: profileData, error: profileError } = await supabase
+          .from("user_profiles")
+          .select("user_id, total_points, current_streak, last_entry_date")
+          .eq("user_id", currentUser.id)
+          .single<UserProfileData>();
 
-  // 1. Ambil SEMUA achievement yang tersedia
-  const { data: allAchievements, error: allAchievementsError } = await supabase
-    .from("achievements")
-    .select("id, name, description, icon_url, points_reward")
-    .order("points_reward", { ascending: true })
-    .returns<AchievementData[]>();
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error("Error fetching profile:", profileError.message);
+        } else {
+          setProfile(profileData);
+        }
 
-  if (allAchievementsError) {
-    console.error("Error fetching all achievements:", allAchievementsError.message);
-  }
+        // 1. Ambil SEMUA achievement yang tersedia
+        const { data: allAchievements, error: allAchievementsError } = await supabase
+          .from("achievements")
+          .select("id, name, description, icon_url, points_reward")
+          .order("points_reward", { ascending: true })
+          .returns<AchievementData[]>();
 
-  // 2. Ambil achievement yang SUDAH DIRAIH user
-  const { data: userEarnedAchievementsData, error: userAchievementsError } = await supabase
-    .from("user_achievements")
-    .select("earned_at, achievement_id, achievements(id, name, description, icon_url, points_reward)")
-    .eq("user_id", user.id)
-    .returns<Array<{ earned_at: string; achievement_id: string; achievements: AchievementData }>>();
+        if (allAchievementsError) {
+          console.error("Error fetching all achievements:", allAchievementsError.message);
+          return;
+        }
 
+        // 2. Ambil achievement yang SUDAH DIRAIH user
+        const { data: userEarnedAchievementsData, error: userAchievementsError } = await supabase
+          .from("user_achievements")
+          .select("earned_at, achievement_id, achievements(id, name, description, icon_url, points_reward)")
+          .eq("user_id", currentUser.id)
+          .returns<Array<{ earned_at: string; achievement_id: string; achievements: AchievementData }>>();
 
-  if (userAchievementsError) {
-    console.error("Error fetching user achievements:", userAchievementsError.message);
-  }
+        if (userAchievementsError) {
+          console.error("Error fetching user achievements:", userAchievementsError.message);
+          return;
+        }
 
-  // 3. Gabungkan data dan pisahkan
-  const earnedAchievements: DisplayAchievement[] = [];
-  const unearnedAchievements: DisplayAchievement[] = [];
+        // 3. Gabungkan data dan pisahkan
+        const earnedList: DisplayAchievement[] = [];
+        const unearnedList: DisplayAchievement[] = [];
 
-  if (allAchievements && allAchievements.length > 0) {
-    allAchievements.forEach(ach => {
-      const earnedVersion = userEarnedAchievementsData?.find(ua => ua.achievement_id === ach.id);
-      if (earnedVersion) {
-        earnedAchievements.push({
-          ...ach,
-          is_earned: true,
-          earned_at: earnedVersion.earned_at,
-        });
-      } else {
-        unearnedAchievements.push({
-          ...ach,
-          is_earned: false,
-          earned_at: null,
-        });
+        if (allAchievements && allAchievements.length > 0) {
+          allAchievements.forEach(ach => {
+            const earnedVersion = userEarnedAchievementsData?.find(ua => ua.achievement_id === ach.id);
+            if (earnedVersion) {
+              earnedList.push({
+                ...ach,
+                is_earned: true,
+                earned_at: earnedVersion.earned_at,
+              });
+            } else {
+              unearnedList.push({
+                ...ach,
+                is_earned: false,
+                earned_at: null,
+              });
+            }
+          });
+        }
+
+        setEarnedAchievements(earnedList);
+        setUnearnedAchievements(unearnedList);
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        toast.error('Terjadi kesalahan saat memuat data profil');
+      } finally {
+        setIsLoading(false);
       }
-    });
-  }
+    };
+
+    fetchData();
+  }, [supabase, router]);
+
+  const handleDisplayNameUpdate = async (newDisplayName: string) => {
+    setDisplayName(newDisplayName);
+    
+    // Refresh user data to get updated metadata
+    try {
+      const { data } = await supabase.auth.getUser();
+      if (data.user) {
+        setUser(data.user);
+      }
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+    }
+  };
 
   // Helper function untuk merender kartu achievement
   const renderAchievementCard = (achievement: DisplayAchievement) => (
@@ -150,30 +204,54 @@ export default async function ProfilePage() {
     </div>
   );
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Memuat profil...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
       <header className="mb-8 p-6 bg-card border rounded-lg shadow-sm">
-        {/* ... (kode header profil tetap sama) ... */}
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4">
             <UserCircle className="h-16 w-16 text-primary" />
             <div>
+              <div className="flex items-center gap-2">
                 <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-                    Profil & Pencapaian
+                  {displayName}
                 </h1>
-                <p className="text-muted-foreground">{user.email}</p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="h-8 w-8 p-0 hover:bg-muted"
+                  title="Edit Display Name"
+                >
+                  <Edit3 className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-muted-foreground">{user?.email}</p>
             </div>
+          </div>
         </div>
+        
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-            <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
-                <Coins className="h-5 w-5 text-yellow-500" />
-                <span>Total Poin:</span>
-                <span className="font-bold text-lg">{profile?.total_points ?? 0}</span>
-            </div>
-            <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
-                <BarChart3 className="h-5 w-5 text-blue-500" />
-                <span>Streak Saat Ini:</span>
-                <span className="font-bold text-lg">{profile?.current_streak ?? 0} hari</span>
-            </div>
+          <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
+            <Coins className="h-5 w-5 text-yellow-500" />
+            <span>Total Poin:</span>
+            <span className="font-bold text-lg">{profile?.total_points ?? 0}</span>
+          </div>
+          <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
+            <BarChart3 className="h-5 w-5 text-blue-500" />
+            <span>Streak Saat Ini:</span>
+            <span className="font-bold text-lg">{profile?.current_streak ?? 0} hari</span>
+          </div>
         </div>
       </header>
 
@@ -213,6 +291,14 @@ export default async function ProfilePage() {
           </div>
         )}
       </section>
+
+      {/* Edit Display Name Modal */}
+      <EditDisplayNameModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        currentDisplayName={displayName}
+        onSuccess={handleDisplayNameUpdate}
+      />
     </div>
   );
 }
