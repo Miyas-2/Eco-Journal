@@ -214,15 +214,15 @@ export default async function HomePage() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-organic-title flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-br from-stone-100 to-stone-200 rounded-xl flex items-center justify-center">
-                <Clock className="h-4 w-4 text-stone-600" />
+          <Clock className="h-4 w-4 text-stone-600" />
               </div>
               Aktivitas Terbaru
             </h2>
             {recentActivities.length > 0 && (
               <Button variant="ghost" size="sm" asChild className="text-organic-accent hover:bg-emerald-50 rounded-xl">
-                <Link href="/protected/journal/history">
-                  Lihat Semua
-                </Link>
+          <Link href="/protected/journal/history">
+            Lihat Semua
+          </Link>
               </Button>
             )}
           </div>
@@ -230,73 +230,73 @@ export default async function HomePage() {
           {recentActivities.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-gradient-to-br from-stone-100 to-stone-200 rounded-3xl flex items-center justify-center mx-auto mb-4">
-                <Calendar className="h-8 w-8 text-stone-400" />
+          <Calendar className="h-8 w-8 text-stone-400" />
               </div>
               <h3 className="text-lg font-medium text-organic-title mb-2">
-                Belum ada aktivitas
+          Belum ada aktivitas
               </h3>
               <p className="text-organic-secondary mb-4">
-                Mulai perjalanan mindfulness-mu dengan menulis jurnal pertama
+          Mulai perjalanan mindfulness-mu dengan menulis jurnal pertama
               </p>
               <Button asChild className="btn-organic-secondary">
-                <Link href="/protected/journal/new">
-                  Tulis Jurnal Pertama
-                </Link>
+          <Link href="/protected/journal/new">
+            Tulis Jurnal Pertama
+          </Link>
               </Button>
             </div>
           ) : (
             <div className="space-y-4">
               {recentActivities.map((activity) => {
-                const ActivityIcon = activity.icon;
-                const EmotionIcon = activity.emotionDisplay?.icon;
-                
-                return (
-                  <div 
-                    key={activity.id} 
-                    className="flex items-center gap-4 p-4 rounded-2xl hover:bg-stone-50/50 transition-all duration-300 group border border-stone-100/50"
-                  >
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${activity.bgColor} group-hover:scale-110 transition-transform duration-300`}>
-                      <ActivityIcon className={`h-5 w-5 ${activity.color}`} />
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-medium text-organic-title truncate">
-                          {activity.title}
-                        </h3>
-                        {activity.emotionDisplay && EmotionIcon && (
-                          <Badge 
-                            variant="outline" 
-                            className="text-xs px-2 py-1 rounded-full border-emerald-200 text-emerald-700 bg-emerald-50"
-                          >
-                            <EmotionIcon className="h-3 w-3 mr-1" />
-                            {activity.emotionDisplay.emotion}
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-organic-secondary truncate mb-1">
-                        {activity.subtitle}
-                      </p>
-                      <p className="text-xs text-organic-caption flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {getRelativeTime(activity.time)}
-                      </p>
-                    </div>
+          const ActivityIcon = activity.icon;
+          const EmotionIcon = activity.emotionDisplay?.icon;
+          
+          return (
+            <div 
+              key={activity.id} 
+              className="flex items-center gap-4 p-4 rounded-2xl hover:bg-stone-50/50 transition-all duration-300 group border border-stone-100/50"
+            >
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${activity.bgColor} group-hover:scale-110 transition-transform duration-300`}>
+                <ActivityIcon className={`h-5 w-5 ${activity.color}`} />
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-2">
+            <h3 className="font-medium text-organic-title truncate">
+              {activity.title}
+            </h3>
+            {activity.emotionDisplay && EmotionIcon && (
+              <Badge 
+                variant="outline" 
+                className="text-xs px-2 py-1 rounded-full border-emerald-200 text-emerald-700 bg-emerald-50"
+              >
+                <EmotionIcon className="h-3 w-3 mr-1" />
+                {activity.emotionDisplay.emotion}
+              </Badge>
+            )}
+                </div>
+                <p className="text-sm text-organic-secondary truncate mb-1">
+            {activity.subtitle}
+                </p>
+                <p className="text-xs text-organic-caption flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            {getRelativeTime(activity.time)}
+                </p>
+              </div>
 
-                    {activity.href && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        asChild 
-                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-organic-accent hover:bg-emerald-50 rounded-xl"
-                      >
-                        <Link href={activity.href}>
-                          Lihat
-                        </Link>
-                      </Button>
-                    )}
-                  </div>
-                );
+              {activity.href && (
+                <Button 
+            variant="ghost" 
+            size="sm" 
+            asChild 
+            className="text-organic-accent hover:bg-emerald-50 rounded-xl"
+                >
+            <Link href={activity.href}>
+              Lihat
+            </Link>
+                </Button>
+              )}
+            </div>
+          );
               })}
             </div>
           )}
