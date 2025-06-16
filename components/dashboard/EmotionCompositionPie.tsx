@@ -43,11 +43,11 @@ export default function EmotionCompositionPie() {
   }, [range]);
 
   return (
-    <div className="mb-8 p-6 bg-card border rounded-lg shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Komposisi Emosi</h2>
+    <div className="mb-8 p-4 sm:p-6 bg-card border rounded-lg shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+        <h2 className="text-base sm:text-lg font-semibold">Komposisi Emosi</h2>
         <select
-          className="border rounded px-2 py-1 text-sm"
+          className="border rounded px-2 py-1 text-sm w-full sm:w-auto"
           value={range}
           onChange={(e) => setRange(e.target.value as "7" | "30" | "all")}
         >
@@ -65,7 +65,7 @@ export default function EmotionCompositionPie() {
           Belum ada data emosi untuk ditampilkan.
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={320}>
+        <ResponsiveContainer width="100%" height={280} className="sm:h-80">
           <PieChart>
             <Pie
               data={data}
@@ -73,9 +73,12 @@ export default function EmotionCompositionPie() {
               nameKey="emotion"
               cx="50%"
               cy="50%"
-              outerRadius={110}
+              outerRadius={80}
+              className="sm:outerRadius-[110px]"
               label={({ percent, emotion }) =>
-                `${emotion} (${percent.toFixed(0)}%)`
+                window.innerWidth >= 640 
+                  ? `${emotion} (${percent.toFixed(0)}%)` 
+                  : `${percent.toFixed(0)}%`
               }
               isAnimationActive
             >
@@ -90,7 +93,9 @@ export default function EmotionCompositionPie() {
               ]}
               labelFormatter={(label) => `Emosi: ${label}`}
             />
-            <Legend />
+            <Legend 
+              wrapperStyle={{ fontSize: window.innerWidth >= 640 ? '14px' : '12px' }}
+            />
           </PieChart>
         </ResponsiveContainer>
       )}

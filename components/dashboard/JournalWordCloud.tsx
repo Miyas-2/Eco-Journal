@@ -12,6 +12,27 @@ export default function JournalWordCloud() {
   const [range, setRange] = useState<'7' | '30' | 'all'>('30');
   const [data, setData] = useState<WordData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dimensions, setDimensions] = useState({ width: 600, height: 320 });
+
+  useEffect(() => {
+    const updateDimensions = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        // Mobile
+        setDimensions({ width: width - 48, height: 250 });
+      } else if (width < 768) {
+        // Tablet
+        setDimensions({ width: width - 64, height: 280 });
+      } else {
+        // Desktop
+        setDimensions({ width: 600, height: 320 });
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -22,11 +43,11 @@ export default function JournalWordCloud() {
   }, [range]);
 
   return (
-    <div className="mb-8 p-6 bg-card border rounded-lg shadow-sm">
-      <div className="flex items-center justify-between mb-4">
+    <div className="mb-8 p-4 sm:p-6 bg-card border rounded-lg shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
         <h2 className="text-lg font-semibold">Awan Kata Jurnal</h2>
         <select
-          className="border rounded px-2 py-1 text-sm"
+          className="border rounded px-2 py-1 text-sm w-full sm:w-auto"
           value={range}
           onChange={e => setRange(e.target.value as '7' | '30' | 'all')}
         >
@@ -36,21 +57,21 @@ export default function JournalWordCloud() {
         </select>
       </div>
       {loading ? (
-        <div className="flex items-center justify-center h-40 text-muted-foreground">
+        <div className="flex items-center justify-center h-32 sm:h-40 text-muted-foreground">
           <Loader2 className="animate-spin mr-2" /> Memuat word cloud...
         </div>
       ) : data.length === 0 ? (
         <div className="text-center text-muted-foreground py-8">Belum ada data kata untuk ditampilkan.</div>
       ) : (
-        <div style={{ width: "100%", height: 320 }}>
+        <div className="w-full overflow-hidden" style={{ height: dimensions.height }}>
           <ReactD3Cloud
             data={data.map(d => ({ text: d.word, value: d.count }))}
             font="Impact"
-            fontSize={word => 18 + word.value * 4}
+            fontSize={word => Math.max(12, 14 + word.value * (dimensions.width < 640 ? 2 : 4))}
             rotate={word => (word.value % 2 === 0 ? 0 : 90)}
-            padding={2}
-            width={600}
-            height={320}
+            padding={dimensions.width < 640 ? 1 : 2}
+            width={dimensions.width}
+            height={dimensions.height}
           />
         </div>
       )}

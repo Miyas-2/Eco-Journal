@@ -19,11 +19,11 @@ export default function MoodTrendChart() {
   }, [range]);
 
   return (
-    <div className="mb-8 p-6 bg-card border rounded-lg shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Grafik Tren Mood</h2>
+    <div className="mb-4 sm:mb-8 p-3 sm:p-6 bg-card border rounded-lg shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+        <h2 className="text-base sm:text-lg font-semibold">Grafik Tren Mood</h2>
         <select
-          className="border rounded px-2 py-1 text-sm"
+          className="border rounded px-2 py-1 text-xs sm:text-sm w-full sm:w-auto"
           value={range}
           onChange={e => setRange(e.target.value as '7' | '30' | 'all')}
         >
@@ -33,24 +33,47 @@ export default function MoodTrendChart() {
         </select>
       </div>
       {loading ? (
-        <div className="flex items-center justify-center h-40 text-muted-foreground">
-          <Loader2 className="animate-spin mr-2" /> Memuat grafik...
+        <div className="flex items-center justify-center h-32 sm:h-40 text-muted-foreground">
+          <Loader2 className="animate-spin mr-2 w-4 h-4" />
+          <span className="text-sm">Memuat grafik...</span>
         </div>
       ) : data.length === 0 ? (
-        <div className="text-center text-muted-foreground py-8">Belum ada data mood_score untuk ditampilkan.</div>
+        <div className="text-center text-muted-foreground py-6 sm:py-8 text-sm">
+          Belum ada data mood_score untuk ditampilkan.
+        </div>
       ) : (
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
+        <ResponsiveContainer width="100%" height={250}>
+          <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" fontSize={12} />
-            <YAxis domain={[-1, 1]} ticks={[-1, -0.5, 0, 0.5, 1]} />
-            <Tooltip formatter={(v: number) => v.toFixed(2)} />
+            <XAxis
+              dataKey="date"
+              fontSize={10}
+              tick={{ fontSize: 10 }}
+              interval="preserveStartEnd"
+            />
+            <YAxis
+              domain={[-1, 1]}
+              ticks={[-1, -0.5, 0, 0.5, 1]}
+              fontSize={10}
+              tick={{ fontSize: 10 }}
+            />
+            <Tooltip
+              formatter={(v: number) => v.toFixed(2)}
+              contentStyle={{ fontSize: '12px' }}
+            />
             <ReferenceLine y={0} stroke="#888" strokeDasharray="3 3" />
-            <Line type="monotone" dataKey="avgMood" stroke="#22c55e" strokeWidth={2.5} dot />
+            <Line
+              type="monotone"
+              dataKey="avgMood"
+              stroke="#22c55e"
+              strokeWidth={2}
+              dot={{ r: 3 }}
+            />
           </LineChart>
         </ResponsiveContainer>
+
       )}
-      <div className="text-xs text-muted-foreground mt-2">
+      <div className="text-xs text-muted-foreground mt-2 text-center sm:text-left">
         -1: Negatif, 0: Netral, +1: Positif
       </div>
     </div>

@@ -510,9 +510,9 @@ export default function ProfilePage() {
             </div>
             
             <MoodTrendChart />
+            <MoodAirCorrelationChart />
             <EmotionCompositionPie />
             <JournalWordCloud />
-            <MoodAirCorrelationChart />
           </div>
         )}
 
