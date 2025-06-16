@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, AlertCircle, Save, Sparkles } from "lucide-react";
+import { Loader2, AlertCircle, Save, Sparkles, Heart, Brain, CheckCircle2, Info } from "lucide-react";
 import { WeatherApiResponse, EmotionApiResponse } from "@/types";
 import toast from "react-hot-toast";
 
@@ -223,14 +223,42 @@ export default function JournalEditForm({
         throw new Error(`Gagal memperbarui jurnal: ${updateError.message}`);
       }
 
-      toast.success("Jurnal berhasil diperbarui!");
+      toast.success("Jurnal berhasil diperbarui!", {
+        style: {
+          background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+          color: '#065f46',
+          border: '1px solid #a7f3d0',
+          borderRadius: '1rem',
+          fontFamily: 'Poppins, sans-serif',
+          fontWeight: '500'
+        },
+        iconTheme: {
+          primary: '#10b981',
+          secondary: '#ecfdf5',
+        },
+      });
+      
       router.push(`/protected/journal/${existingJournal.id}`);
     } catch (err: any) {
       console.error("Error updating journal:", err);
       const errorMessage =
         err.message || "Terjadi kesalahan saat memperbarui jurnal.";
       setError(errorMessage);
-      toast.error(errorMessage);
+      
+      toast.error(errorMessage, {
+        style: {
+          background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+          color: '#991b1b',
+          border: '1px solid #fca5a5',
+          borderRadius: '1rem',
+          fontFamily: 'Poppins, sans-serif',
+          fontWeight: '500'
+        },
+        iconTheme: {
+          primary: '#ef4444',
+          secondary: '#fef2f2',
+        },
+      });
     } finally {
       setIsSaving(false);
       setInfoMessage(null);
@@ -240,103 +268,171 @@ export default function JournalEditForm({
   const isLoading = isAnalyzingEmotion || isSaving;
 
   return (
-    <div className="space-y-6">
-      {/* Input Judul */}
-      <div>
-        <Label htmlFor="journal-title" className="text-base font-medium">
-          Judul Jurnal
-        </Label>
+    <div className="space-organic-y-lg font-organik">
+      {/* Header Section - Modern Organik */}
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-200/40 float-organic">
+          <Save className="h-8 w-8 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-organic-title mb-2">Edit Jurnal Saya</h2>
+        <p className="text-organic-body">Perbarui refleksi dan pemikiran dalam jurnal Anda</p>
+      </div>
+
+      {/* Input Judul - Modern Organik */}
+      <div className="card-organic rounded-3xl p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center">
+            <span className="text-blue-600 text-sm font-semibold">📝</span>
+          </div>
+          <Label htmlFor="journal-title" className="text-lg font-semibold text-organic-title">
+            Judul Jurnal
+          </Label>
+        </div>
         <Input
           id="journal-title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Berikan judul untuk entri jurnalmu..."
-          className="mt-1 text-base"
+          placeholder="Berikan judul yang menggambarkan perasaan Anda hari ini..."
+          className="bg-white/50 border-stone-200/50 hover:border-emerald-300 focus:border-emerald-500 rounded-2xl h-12 text-base transition-all duration-300 focus-organic"
           disabled={isLoading}
         />
       </div>
 
-      {/* Input Konten */}
-      <div>
-        <Label htmlFor="journal-content" className="text-base font-medium">
-          Apa yang kamu rasakan atau pikirkan?
-        </Label>
+      {/* Input Konten - Modern Organik */}
+      <div className="card-organic rounded-3xl p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-8 h-8 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center">
+            <span className="text-emerald-600 text-sm font-semibold">✨</span>
+          </div>
+          <Label htmlFor="journal-content" className="text-lg font-semibold text-organic-title">
+            Cerita & Refleksi Anda
+          </Label>
+        </div>
         <Textarea
           id="journal-content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Tuliskan jurnalmu di sini..."
-          rows={8}
-          className="mt-1 text-base"
+          placeholder="Tuangkan semua perasaan, pemikiran, dan refleksi Anda di sini. Biarkan kata-kata mengalir dengan natural..."
+          rows={10}
+          className="bg-white/50 border-stone-200/50 hover:border-emerald-300 focus:border-emerald-500 rounded-2xl text-base leading-relaxed transition-all duration-300 focus-organic resize-none"
           disabled={isLoading}
         />
-      </div>
-
-      {/* Sumber Emosi */}
-      <div className="mb-4">
-        <Label className="block mb-1">Sumber Emosi</Label>
-        <div className="flex gap-4">
-          <label>
-            <input
-              type="radio"
-              name="emotion_source"
-              value="ai"
-              checked={emotionSource === "ai"}
-              onChange={() => setEmotionSource("ai")}
-              disabled={isLoading}
-            />
-            AI (otomatis)
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="emotion_source"
-              value="manual"
-              checked={emotionSource === "manual"}
-              onChange={() => setEmotionSource("manual")}
-              disabled={isLoading}
-            />
-            Pilih Sendiri
-          </label>
+        <div className="flex items-center justify-between mt-3 text-sm text-organic-caption">
+          <span>Ekspresikan diri Anda dengan bebas</span>
+          <span>{content.length} karakter</span>
         </div>
       </div>
 
-      {/* Manual Emotion Selection */}
-      {emotionSource === "manual" && (
-        <div className="mb-4">
-          <Label htmlFor="emotion-select">Pilih Emosi</Label>
-          <select
-            id="emotion-select"
-            value={selectedEmotionId ?? ""}
-            onChange={(e) => setSelectedEmotionId(Number(e.target.value))}
-            className="block mt-1 w-full p-2 border rounded"
-            disabled={isLoading}
-          >
-            <option value="">-- Pilih emosi --</option>
-            {emotions.map((emotion) => (
-              <option key={emotion.id} value={emotion.id}>
-                {emotion.name}
-              </option>
-            ))}
-          </select>
+      {/* Emotion Source Selection - Modern Organik */}
+      <div className="card-organic rounded-3xl p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-8 h-8 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl flex items-center justify-center">
+            <Heart className="h-4 w-4 text-purple-600" />
+          </div>
+          <h3 className="text-lg font-semibold text-organic-title">Analisis Emosi</h3>
         </div>
-      )}
 
-      {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <label className={`card-organic rounded-2xl p-4 cursor-pointer transition-all duration-300 border-2 ${
+            emotionSource === "ai" 
+              ? "border-emerald-300 bg-emerald-50/50" 
+              : "border-stone-200/50 hover:border-emerald-200"
+          }`}>
+            <div className="flex items-center gap-3">
+              <input
+                type="radio"
+                name="emotion_source"
+                value="ai"
+                checked={emotionSource === "ai"}
+                onChange={() => setEmotionSource("ai")}
+                disabled={isLoading}
+                className="w-5 h-5 text-emerald-600 focus:ring-emerald-500 focus:ring-2"
+              />
+              <div className="flex items-center gap-3 flex-1">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl flex items-center justify-center">
+                  <Brain className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <div className="font-medium text-organic-title">AI Otomatis</div>
+                  <div className="text-sm text-organic-secondary">Analisis cerdas berdasarkan teks</div>
+                </div>
+              </div>
+            </div>
+          </label>
+
+          <label className={`card-organic rounded-2xl p-4 cursor-pointer transition-all duration-300 border-2 ${
+            emotionSource === "manual" 
+              ? "border-emerald-300 bg-emerald-50/50" 
+              : "border-stone-200/50 hover:border-emerald-200"
+          }`}>
+            <div className="flex items-center gap-3">
+              <input
+                type="radio"
+                name="emotion_source"
+                value="manual"
+                checked={emotionSource === "manual"}
+                onChange={() => setEmotionSource("manual")}
+                disabled={isLoading}
+                className="w-5 h-5 text-emerald-600 focus:ring-emerald-500 focus:ring-2"
+              />
+              <div className="flex items-center gap-3 flex-1">
+                <div className="w-10 h-10 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center">
+                  <Heart className="h-5 w-5 text-emerald-600" />
+                </div>
+                <div>
+                  <div className="font-medium text-organic-title">Pilih Sendiri</div>
+                  <div className="text-sm text-organic-secondary">Tentukan emosi secara manual</div>
+                </div>
+              </div>
+            </div>
+          </label>
+        </div>
+
+        {/* Manual Emotion Selection - Modern Organik */}
+        {emotionSource === "manual" && (
+          <div className="sub-card-organic rounded-2xl p-6">
+            <Label className="text-base font-medium text-organic-title mb-3 block">
+              Pilih Emosi yang Anda Rasakan
+            </Label>
+            <select
+              value={selectedEmotionId ?? ""}
+              onChange={(e) => setSelectedEmotionId(Number(e.target.value))}
+              className="w-full bg-white/50 border-stone-200/50 hover:border-emerald-300 focus:border-emerald-500 rounded-2xl h-12 px-4 text-base transition-all duration-300 focus-organic"
+              disabled={isLoading}
+            >
+              <option value="">-- Pilih emosi yang paling sesuai --</option>
+              {emotions.map((emotion) => (
+                <option key={emotion.id} value={emotion.id}>
+                  {emotion.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+
+      {/* Action Buttons - Modern Organik */}
+      <div className="flex flex-col sm:flex-row gap-4">
         {emotionSource === "ai" && (
           <Button
             onClick={handleAnalyzeEmotion}
             disabled={isLoading || !content.trim()}
-            className="w-full sm:flex-1"
             variant="outline"
+            className="w-full sm:flex-1 h-12 bg-white/50 border-stone-200/50 hover:border-purple-300 hover:bg-purple-50/50 text-organic-title rounded-2xl transition-all duration-300"
           >
             {isAnalyzingEmotion ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <div className="flex items-center justify-center gap-3">
+                <div className="w-4 h-4 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+                <span>Menganalisis...</span>
+              </div>
             ) : (
-              <Sparkles className="mr-2 h-4 w-4" />
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center">
+                  <Sparkles className="h-3 w-3 text-purple-600" />
+                </div>
+                <span>Analisis Ulang Emosi</span>
+              </div>
             )}
-            Analisis Ulang Emosi
           </Button>
         )}
 
@@ -351,64 +447,93 @@ export default function JournalEditForm({
               !existingJournal.emotion_analysis) ||
             (emotionSource === "manual" && !selectedEmotionId)
           }
-          className="w-full sm:flex-1"
+          className="w-full sm:flex-1 btn-organic-primary h-12"
         >
           {isSaving ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <div className="flex items-center justify-center gap-3">
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              <span>Memperbarui...</span>
+            </div>
           ) : (
-            <Save className="mr-2 h-4 w-4" />
+            <div className="flex items-center gap-3">
+              <Save className="h-5 w-5" />
+              <span>Perbarui Jurnal</span>
+            </div>
           )}
-          Perbarui Jurnal
         </Button>
       </div>
 
-      {/* Display Emotion Analysis Results */}
+      {/* Emotion Analysis Results - Modern Organik */}
       {emotionData && !isAnalyzingEmotion && (
-        <div className="mt-6 space-y-3 p-4 border rounded-md bg-muted/30">
-          <h3 className="text-lg font-semibold border-b pb-2 mb-2">
-            Hasil Analisis Emosi
-          </h3>
-          <div>
-            <p className="text-base">
-              Emosi Dominan:{" "}
-              <strong className="text-lg text-primary">
+        <div className="card-organic rounded-3xl p-6 bg-gradient-to-r from-purple-50/50 to-pink-50/50 border border-purple-200/30">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-200/40">
+              <Sparkles className="h-5 w-5 text-white" />
+            </div>
+            <h3 className="text-lg font-semibold text-organic-title">Hasil Analisis Emosi AI</h3>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="card-organic rounded-2xl p-4 bg-white/80">
+              <div className="flex items-center gap-3 mb-2">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                <span className="font-medium text-organic-title">Emosi Dominan</span>
+              </div>
+              <p className="text-xl font-bold text-purple-700 mb-1">
                 {emotionData.top_prediction.label}
-              </strong>{" "}
-              ({emotionData.top_prediction.confidence.toFixed(2)}%)
-            </p>
-            <p className="text-sm mt-2 text-muted-foreground">
-              Detail Prediksi:
-            </p>
-            <ul className="text-xs list-disc list-inside pl-1 mt-1 grid grid-cols-2 sm:grid-cols-3 gap-x-4">
-              {Object.entries(emotionData.all_predictions)
-                .sort(([, a], [, b]) => b - a)
-                .map(([key, value]) => (
-                  <li key={key} className="break-inside-avoid my-0.5">
-                    {key}: {value.toFixed(2)}%
-                  </li>
-                ))}
-            </ul>
+              </p>
+              <p className="text-sm text-organic-secondary">
+                Tingkat kepercayaan: {emotionData.top_prediction.confidence.toFixed(2)}%
+              </p>
+            </div>
+
+            <div className="card-organic rounded-2xl p-4 bg-white/80">
+              <h4 className="font-medium text-organic-title mb-3 flex items-center gap-2">
+                <Brain className="h-4 w-4 text-purple-600" />
+                Detail Analisis Emosi
+              </h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {Object.entries(emotionData.all_predictions)
+                  .sort(([, a], [, b]) => b - a)
+                  .map(([key, value]) => (
+                    <div key={key} className="bg-gradient-to-r from-stone-50 to-white rounded-xl p-3 border border-stone-200/50">
+                      <div className="font-medium text-sm text-organic-title capitalize">{key}</div>
+                      <div className="text-xs text-organic-secondary">{value.toFixed(1)}%</div>
+                    </div>
+                  ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Messages */}
+      {/* Messages - Modern Organik */}
       {infoMessage && !error && (
-        <Alert
-          variant="default"
-          className="bg-blue-50 border-blue-300 text-blue-700"
-        >
-          <AlertTitle>Informasi</AlertTitle>
-          <AlertDescription>{infoMessage}</AlertDescription>
-        </Alert>
+        <div className="card-organic rounded-2xl p-4 bg-gradient-to-r from-blue-50/50 to-sky-50/50 border border-blue-200/30">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center">
+              <Info className="h-4 w-4 text-blue-600" />
+            </div>
+            <div>
+              <div className="font-medium text-blue-800">Informasi</div>
+              <div className="text-sm text-blue-700">{infoMessage}</div>
+            </div>
+          </div>
+        </div>
       )}
 
       {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <div className="card-organic rounded-2xl p-4 bg-gradient-to-r from-red-50/50 to-pink-50/50 border border-red-200/30">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-red-100 to-red-200 rounded-xl flex items-center justify-center">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+            </div>
+            <div>
+              <div className="font-medium text-red-800">Terjadi Kesalahan</div>
+              <div className="text-sm text-red-700">{error}</div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

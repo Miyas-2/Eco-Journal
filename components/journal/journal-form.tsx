@@ -7,13 +7,13 @@ import { Label } from '@/components/ui/label';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, InfoIcon as Info, AlertCircle, Sparkles, Save, Lightbulb, XCircle } from 'lucide-react'; // Tambahkan Lightbulb, XCircle
+import { Loader2, InfoIcon as Info, AlertCircle, Sparkles, Save, Lightbulb, XCircle, Brain, Heart, Edit, Cloud } from 'lucide-react';
 import { WeatherApiResponse, EmotionApiResponse, UserLocation } from '@/types';
 import WeatherDisplay from '@/components/dashboard/weather-display';
 import { Input } from '../ui/input';
 import { simpleMarkdownToHtml } from "@/lib/utils";
-import toast from 'react-hot-toast'; // Pastikan sudah diimport jika belum
-import { Award } from 'lucide-react'; // Untuk toast
+import toast from 'react-hot-toast';
+import { Award } from 'lucide-react';
 
 interface JournalFormProps {
   userId: string;
@@ -32,8 +32,6 @@ interface GamificationResponse {
   pointsEarnedThisEntry?: number;
   error?: string;
 }
-
-
 
 export default function JournalForm({ userId }: JournalFormProps) {
   const [title, setTitle] = useState('');
@@ -59,15 +57,12 @@ export default function JournalForm({ userId }: JournalFormProps) {
   const [emotionSource, setEmotionSource] = useState<EmotionSource>('ai');
   const [emotions, setEmotions] = useState<Emotion[]>([]);
   const [selectedEmotionId, setSelectedEmotionId] = useState<number | null>(null);
-
   const [emotionsMap, setEmotionsMap] = useState<Map<string, number | null>>(new Map());
-
 
   const supabase = createClient();
   const router = useRouter();
 
   const getEmotionIdFromDb = async (emotionName?: string): Promise<number | null> => {
-    // ... existing code ...
     if (!emotionName) return null;
     const normalizedEmotionName = emotionName.charAt(0).toUpperCase() + emotionName.slice(1).toLowerCase();
 
@@ -87,7 +82,6 @@ export default function JournalForm({ userId }: JournalFormProps) {
 
   useEffect(() => {
     const fetchInitialWeather = async () => {
-      // ... existing code ...
       if (weatherData || userLocation) return;
 
       setIsFetchingWeather(true);
@@ -137,10 +131,9 @@ export default function JournalForm({ userId }: JournalFormProps) {
     fetchInitialWeather();
 
     const fetchEmotions = async () => {
-      // Pastikan memilih kolom sentiment_score (atau nama kolom valence Anda)
       const { data, error: fetchError } = await supabase
         .from('emotions')
-        .select('id, name, sentiment_score'); // Ganti 'sentiment_score' jika nama kolom Anda berbeda
+        .select('id, name, sentiment_score');
 
       if (fetchError) {
         console.error("Error fetching emotions:", fetchError);
@@ -149,9 +142,8 @@ export default function JournalForm({ userId }: JournalFormProps) {
         setEmotions(data as Emotion[]);
         const newMap = new Map<string, number | null>();
         data.forEach(emotion => {
-          if (emotion.name) { // Pastikan nama emosi ada
+          if (emotion.name) {
             const normalizedName = emotion.name.charAt(0).toUpperCase() + emotion.name.slice(1).toLowerCase();
-            // Simpan sentiment_score, pastikan itu angka atau null jika memang bisa null di DB
             newMap.set(normalizedName, (typeof emotion.sentiment_score === 'number') ? emotion.sentiment_score : null);
           }
         });
@@ -162,7 +154,6 @@ export default function JournalForm({ userId }: JournalFormProps) {
   }, []);
 
   const handleAnalyzeEmotion = async () => {
-    // ... existing code ...
     if (!content.trim()) {
       setError("Konten jurnal tidak boleh kosong untuk dianalisis.");
       return;
@@ -194,7 +185,7 @@ export default function JournalForm({ userId }: JournalFormProps) {
     }
   };
 
-const handleSaveJournal = async () => {
+  const handleSaveJournal = async () => {
     if (!title.trim()) {
       setError("Judul jurnal tidak boleh kosong.");
       return;
@@ -217,21 +208,20 @@ const handleSaveJournal = async () => {
     setInfoMessage("Menyimpan jurnal...");
 
     try {
-      let aiEmotionId: number | null = null; // Untuk kolom 'emotion_id'
+      let aiEmotionId: number | null = null;
       let calculatedMoodScore: number | null = null;
 
       if (emotionSource === 'ai' && emotionData) {
         const topEmotionLabel = emotionData.top_prediction?.label;
         if (topEmotionLabel) {
           aiEmotionId = await getEmotionIdFromDb(topEmotionLabel);
-          if (!aiEmotionId) { // Error sudah di-set oleh getEmotionIdFromDb
+          if (!aiEmotionId) {
             setIsSaving(false);
             setInfoMessage(null);
             return;
           }
         }
 
-        // Hitung mood_score berdasarkan all_predictions (sesuai contoh Anda)
         let sumOfProducts = 0;
         let foundAnyValenceForAI = false;
         if (emotionData.all_predictions) {
@@ -251,7 +241,6 @@ const handleSaveJournal = async () => {
         if (foundAnyValenceForAI) {
           calculatedMoodScore = sumOfProducts / 100;
         } else {
-          // Jika tidak ada valence yang cocok, mood_score bisa null atau 0, tergantung kebijakan Anda
           calculatedMoodScore = null;
           console.warn("Tidak ada valence yang cocok ditemukan untuk emosi dari AI, mood_score di-set ke null.");
         }
@@ -268,7 +257,6 @@ const handleSaveJournal = async () => {
         }
       }
 
-      // Simpan jurnal ke database
       const journalEntryData = {
         user_id: userId,
         title,
@@ -280,7 +268,7 @@ const handleSaveJournal = async () => {
         latitude: userLocation?.latitude,
         longitude: userLocation?.longitude,
         location_name: userLocation?.name || weatherData?.location.name,
-        mood_score: calculatedMoodScore, // Tambahkan mood_score yang sudah dihitung
+        mood_score: calculatedMoodScore,
       };
 
       const { error: insertError } = await supabase
@@ -300,8 +288,6 @@ const handleSaveJournal = async () => {
           body: JSON.stringify({
             userId,
             journalDate: new Date().toISOString().split('T')[0],
-            // Anda bisa mengirim mood_score ke API gamifikasi jika diperlukan di sana
-            // moodScore: calculatedMoodScore
           }),
         });
 
@@ -324,6 +310,22 @@ const handleSaveJournal = async () => {
       setEmotionData(null);
       setSelectedEmotionId(null);
       setInfoMessage(null);
+      
+      toast.success("Jurnal berhasil disimpan!", {
+        style: {
+          background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+          color: '#065f46',
+          border: '1px solid #a7f3d0',
+          borderRadius: '1rem',
+          fontFamily: 'Poppins, sans-serif',
+          fontWeight: '500'
+        },
+        iconTheme: {
+          primary: '#10b981',
+          secondary: '#ecfdf5',
+        },
+      });
+      
       sessionStorage.setItem('journalSaveSuccess', 'true');
       router.push('/protected');
 
@@ -331,7 +333,22 @@ const handleSaveJournal = async () => {
       console.error("Error di handleSaveJournal:", err);
       const errorMessage = err.message || "Terjadi kesalahan saat menyimpan jurnal.";
       setError(errorMessage);
-      toast.error(errorMessage);
+      
+      toast.error(errorMessage, {
+        style: {
+          background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+          color: '#991b1b',
+          border: '1px solid #fca5a5',
+          borderRadius: '1rem',
+          fontFamily: 'Poppins, sans-serif',
+          fontWeight: '500'
+        },
+        iconTheme: {
+          primary: '#ef4444',
+          secondary: '#fef2f2',
+        },
+      });
+      
       setInfoMessage(null);
       setIsSaving(false);
     }
@@ -380,176 +397,296 @@ Tolong berikan 2 pertanyaan reflektif yang sederhana dan hangat, agar saya bisa 
     }
   };
 
-
   const isLoading = isFetchingWeather || isAnalyzingEmotion || isSaving || isFetchingSuggestion;
 
   return (
-    <div className="space-y-6">
-      {/* ... Tampilan Cuaca ... */}
-      <div className="p-4 border rounded-md bg-muted/20">
-        <h3 className="text-lg font-semibold mb-2">Kondisi Lingkungan Saat Jurnal Dibuat</h3>
-        {isFetchingWeather && <div className="flex items-center text-sm"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Memuat data cuaca...</div>}
-        {weatherData && userLocation && !isFetchingWeather && <WeatherDisplay weather={weatherData} locationName={userLocation.name} />}
-        {!weatherData && !isFetchingWeather && <p className="text-sm text-muted-foreground">Data cuaca tidak tersedia atau gagal dimuat.</p>}
+    <div className="space-organic-y-lg font-organik">
+      {/* Header Section - Modern Organik */}
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-200/40 float-organic">
+          <Edit className="h-8 w-8 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-organic-title mb-2">Tulis Jurnal Baru</h2>
+        <p className="text-organic-body">Ekspresikan perasaan dan pemikiran Anda hari ini</p>
       </div>
 
-      <div>
-        <Label htmlFor="journal-title" className="text-base font-medium">
-          Judul Jurnal
-        </Label>
+      {/* Weather Section - Modern Organik */}
+      <div className="card-organic rounded-3xl p-6 bg-gradient-to-br from-blue-50/50 to-sky-50/50 border border-blue-200/30">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-sky-400 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200/40">
+            <Cloud className="h-5 w-5 text-white" />
+          </div>
+          <h3 className="text-lg font-semibold text-organic-title">Kondisi Lingkungan</h3>
+        </div>
+        
+        {isFetchingWeather && (
+          <div className="flex items-center justify-center py-6">
+            <div className="flex items-center gap-3 text-organic-secondary">
+              <div className="w-5 h-5 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+              <span className="text-sm font-medium">Memuat data cuaca...</span>
+            </div>
+          </div>
+        )}
+        
+        {weatherData && userLocation && !isFetchingWeather && (
+          <div className="card-organic rounded-2xl p-4 bg-white/80">
+            <WeatherDisplay weather={weatherData} locationName={userLocation.name} />
+          </div>
+        )}
+        
+        {!weatherData && !isFetchingWeather && (
+          <div className="text-center py-4">
+            <p className="text-sm text-organic-secondary">Data cuaca tidak tersedia atau gagal dimuat.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Title Input - Modern Organik */}
+      <div className="card-organic rounded-3xl p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-8 h-8 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center">
+            <span className="text-amber-600 text-sm font-semibold">📝</span>
+          </div>
+          <Label htmlFor="journal-title" className="text-lg font-semibold text-organic-title">
+            Judul Jurnal
+          </Label>
+        </div>
         <Input
           id="journal-title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Berikan judul untuk entri jurnalmu..."
-          className="mt-1 text-base"
+          placeholder="Berikan judul yang menggambarkan perasaan Anda hari ini..."
+          className="bg-white/50 border-stone-200/50 hover:border-emerald-300 focus:border-emerald-500 rounded-2xl h-12 text-base transition-all duration-300 focus-organic"
           disabled={isLoading}
         />
       </div>
 
-      <div>
-        <div className="flex justify-between items-center">
-          <Label htmlFor="journal-content" className="text-base font-medium">
-            Apa yang kamu rasakan atau pikirkan hari ini?
-          </Label>
+      {/* Content Input - Modern Organik */}
+      <div className="card-organic rounded-3xl p-6">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center">
+              <span className="text-emerald-600 text-sm font-semibold">✨</span>
+            </div>
+            <Label htmlFor="journal-content" className="text-lg font-semibold text-organic-title">
+              Cerita & Perasaan Anda
+            </Label>
+          </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleGetInspiration}
             disabled={isLoading || !content.trim()}
-            className="text-xs text-primary hover:bg-primary/10 px-2 py-1"
+            className="text-xs bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 hover:from-purple-100 hover:to-pink-100 border border-purple-200/50 rounded-xl px-3 py-2 transition-all duration-300"
           >
             {isFetchingSuggestion ? (
-              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+                <span>AI Berpikir...</span>
+              </div>
             ) : (
-              <Lightbulb className="mr-1.5 h-3.5 w-3.5" />
+              <div className="flex items-center gap-2">
+                <Lightbulb className="h-3 w-3" />
+                <span>Dapatkan Inspirasi</span>
+              </div>
             )}
-            Dapatkan Inspirasi
           </Button>
         </div>
+        
         <Textarea
           id="journal-content"
           value={content}
-          onChange={(e) => {
-            setContent(e.target.value);
-            // Otomatis hapus saran LLM jika pengguna mulai mengetik lagi
-            // if (llmSuggestion || llmError) {
-            //   setLlmSuggestion(null);
-            //   setLlmError(null);
-            // }
-          }}
-          placeholder="Tuliskan jurnalmu di sini..."
-          rows={8}
-          className="mt-1 text-base"
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Tuangkan semua perasaan, pemikiran, dan refleksi Anda di sini. Biarkan kata-kata mengalir dengan natural..."
+          rows={10}
+          className="bg-white/50 border-stone-200/50 hover:border-emerald-300 focus:border-emerald-500 rounded-2xl text-base leading-relaxed transition-all duration-300 focus-organic resize-none"
           disabled={isLoading}
         />
+        <div className="flex items-center justify-between mt-3 text-sm text-organic-caption">
+          <span>Ekspresikan diri Anda dengan bebas</span>
+          <span>{content.length} karakter</span>
+        </div>
       </div>
 
-      {/* Tampilkan Saran LLM */}
+      {/* AI Inspiration Display - Modern Organik */}
       {isFetchingSuggestion && (
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-700 flex items-center">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          AI sedang berpikir...
+        <div className="card-organic rounded-2xl p-4 bg-gradient-to-r from-purple-50/50 to-pink-50/50 border border-purple-200/30">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl flex items-center justify-center">
+              <div className="w-4 h-4 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+            </div>
+            <div>
+              <div className="font-medium text-purple-800">AI sedang menyiapkan inspirasi...</div>
+              <div className="text-sm text-purple-700">Tunggu sebentar ya, ide-ide kreatif sedang dalam perjalanan</div>
+            </div>
+          </div>
         </div>
       )}
+
       {llmError && !isFetchingSuggestion && (
-        <Alert variant="destructive" className="mt-2">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error Inspirasi AI</AlertTitle>
-          <AlertDescription>
-            {llmError}
-            <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto -mr-2 -mt-2" onClick={() => setLlmError(null)}>
+        <div className="card-organic rounded-2xl p-4 bg-gradient-to-r from-red-50/50 to-pink-50/50 border border-red-200/30">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-red-100 to-red-200 rounded-xl flex items-center justify-center">
+                <AlertCircle className="h-4 w-4 text-red-600" />
+              </div>
+              <div>
+                <div className="font-medium text-red-800">Gagal Mendapatkan Inspirasi</div>
+                <div className="text-sm text-red-700">{llmError}</div>
+              </div>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setLlmError(null)}
+              className="text-red-600 hover:bg-red-100 rounded-xl"
+            >
               <XCircle className="h-4 w-4" />
             </Button>
-          </AlertDescription>
-        </Alert>
+          </div>
+        </div>
       )}
+
       {llmSuggestion && !isFetchingSuggestion && (
-        <div className="mt-2 p-4 border rounded-md bg-green-50 border-green-300 text-green-800 relative">
-          <div className="flex justify-between items-start">
-            <h4 className="text-sm font-semibold mb-1 flex items-center">
-              <Lightbulb className="h-4 w-4 mr-1.5 text-green-600" />
-              Saran dari AI:
-            </h4>
-            <Button variant="ghost" size="icon" className="h-7 w-7 absolute top-1 right-1" onClick={() => setLlmSuggestion(null)}>
-              <XCircle className="h-5 w-5 text-green-700 hover:text-green-900" />
+        <div className="card-organic rounded-3xl p-6 bg-gradient-to-br from-emerald-50/30 to-teal-50/30 border border-emerald-200/30">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200/40">
+                <Lightbulb className="h-5 w-5 text-white" />
+              </div>
+              <h4 className="text-lg font-semibold text-organic-title">Inspirasi dari AI</h4>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setLlmSuggestion(null)}
+              className="text-emerald-600 hover:bg-emerald-100 rounded-xl"
+            >
+              <XCircle className="h-4 w-4" />
             </Button>
           </div>
-          <p
-            className="text-sm whitespace-pre-line"
-            dangerouslySetInnerHTML={{ __html: simpleMarkdownToHtml(llmSuggestion || "") }}
-          />
+          <div className="card-organic rounded-2xl p-4 bg-white/80">
+            <div
+              className="text-organic-body leading-relaxed whitespace-pre-line"
+              dangerouslySetInnerHTML={{ __html: simpleMarkdownToHtml(llmSuggestion || "") }}
+            />
+          </div>
         </div>
-      )}
-      {/* ... Pesan Info/Error Global dan Tombol Aksi ... */}
-      {infoMessage && !error && (
-        <Alert variant="default" className="bg-blue-50 border-blue-300 text-blue-700">
-          <Info className="h-4 w-4 !text-blue-700" />
-          <AlertTitle>Informasi</AlertTitle>
-          <AlertDescription>{infoMessage}</AlertDescription>
-        </Alert>
-      )}
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
       )}
 
-      <div className="mb-4">
-        <Label className="block mb-1">Sumber Emosi</Label>
-        <div className="flex gap-4">
-          <label>
-            <input
-              type="radio"
-              name="emotion_source"
-              value="ai"
-              checked={emotionSource === 'ai'}
-              onChange={() => setEmotionSource('ai')}
-            />
-            AI (otomatis)
+      {/* Emotion Source Selection - Modern Organik */}
+      <div className="card-organic rounded-3xl p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-8 h-8 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl flex items-center justify-center">
+            <Heart className="h-4 w-4 text-purple-600" />
+          </div>
+          <h3 className="text-lg font-semibold text-organic-title">Analisis Emosi</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <label className={`card-organic rounded-2xl p-4 cursor-pointer transition-all duration-300 border-2 ${
+            emotionSource === "ai" 
+              ? "border-emerald-300 bg-emerald-50/50" 
+              : "border-stone-200/50 hover:border-emerald-200"
+          }`}>
+            <div className="flex items-center gap-3">
+              <input
+                type="radio"
+                name="emotion_source"
+                value="ai"
+                checked={emotionSource === 'ai'}
+                onChange={() => setEmotionSource('ai')}
+                disabled={isLoading}
+                className="w-5 h-5 text-emerald-600 focus:ring-emerald-500 focus:ring-2"
+              />
+              <div className="flex items-center gap-3 flex-1">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl flex items-center justify-center">
+                  <Brain className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <div className="font-medium text-organic-title">AI Otomatis</div>
+                  <div className="text-sm text-organic-secondary">Analisis cerdas berdasarkan teks</div>
+                </div>
+              </div>
+            </div>
           </label>
-          <label>
-            <input
-              type="radio"
-              name="emotion_source"
-              value="manual"
-              checked={emotionSource === 'manual'}
-              onChange={() => setEmotionSource('manual')}
-            />
-            Pilih Sendiri
+
+          <label className={`card-organic rounded-2xl p-4 cursor-pointer transition-all duration-300 border-2 ${
+            emotionSource === "manual" 
+              ? "border-emerald-300 bg-emerald-50/50" 
+              : "border-stone-200/50 hover:border-emerald-200"
+          }`}>
+            <div className="flex items-center gap-3">
+              <input
+                type="radio"
+                name="emotion_source"
+                value="manual"
+                checked={emotionSource === 'manual'}
+                onChange={() => setEmotionSource('manual')}
+                disabled={isLoading}
+                className="w-5 h-5 text-emerald-600 focus:ring-emerald-500 focus:ring-2"
+              />
+              <div className="flex items-center gap-3 flex-1">
+                <div className="w-10 h-10 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center">
+                  <Heart className="h-5 w-5 text-emerald-600" />
+                </div>
+                <div>
+                  <div className="font-medium text-organic-title">Pilih Sendiri</div>
+                  <div className="text-sm text-organic-secondary">Tentukan emosi secara manual</div>
+                </div>
+              </div>
+            </div>
           </label>
         </div>
+
+        {/* Manual Emotion Selection - Modern Organik */}
+        {emotionSource === 'manual' && (
+          <div className="sub-card-organic rounded-2xl p-6">
+            <Label className="text-base font-medium text-organic-title mb-3 block">
+              Pilih Emosi yang Anda Rasakan
+            </Label>
+            <select
+              value={selectedEmotionId ?? ''}
+              onChange={(e) => setSelectedEmotionId(Number(e.target.value))}
+              className="w-full bg-white/50 border-stone-200/50 hover:border-emerald-300 focus:border-emerald-500 rounded-2xl h-12 px-4 text-base transition-all duration-300 focus-organic"
+              disabled={isLoading}
+            >
+              <option value="">-- Pilih emosi yang paling sesuai --</option>
+              {emotions.map((emotion) => (
+                <option key={emotion.id} value={emotion.id}>
+                  {emotion.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
-      {emotionSource === 'manual' && (
-        <div className="mb-4">
-          <Label htmlFor="emotion-select">Pilih Emosi</Label>
-          <select
-            id="emotion-select"
-            value={selectedEmotionId ?? ''}
-            onChange={e => setSelectedEmotionId(Number(e.target.value))}
-            className="block mt-1"
+      {/* Action Buttons - Modern Organik */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        {emotionSource === 'ai' && (
+          <Button
+            onClick={handleAnalyzeEmotion}
+            disabled={isLoading || !content.trim()}
+            variant="outline"
+            className="w-full sm:flex-1 h-12 bg-white/50 border-stone-200/50 hover:border-purple-300 hover:bg-purple-50/50 text-organic-title rounded-2xl transition-all duration-300"
           >
-            <option value="">-- Pilih emosi --</option>
-            {emotions.map(emotion => (
-              <option key={emotion.id} value={emotion.id}>{emotion.name}</option>
-            ))}
-          </select>
-        </div>
-      )}
+            {isAnalyzingEmotion ? (
+              <div className="flex items-center justify-center gap-3">
+                <div className="w-4 h-4 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+                <span>Menganalisis...</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center">
+                  <Sparkles className="h-3 w-3 text-purple-600" />
+                </div>
+                <span>Analisis Emosi</span>
+              </div>
+            )}
+          </Button>
+        )}
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Button
-          onClick={handleAnalyzeEmotion}
-          disabled={isLoading || !content.trim()}
-          className="w-full sm:flex-1"
-          variant="outline"
-        >
-          {isAnalyzingEmotion ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-          Analisis Emosi
-        </Button>
         <Button
           onClick={handleSaveJournal}
           disabled={
@@ -559,29 +696,101 @@ Tolong berikan 2 pertanyaan reflektif yang sederhana dan hangat, agar saya bisa 
             (emotionSource === 'ai' && !emotionData) ||
             (emotionSource === 'manual' && !selectedEmotionId)
           }
-          className="w-full sm:flex-1"
+          className="w-full sm:flex-1 btn-organic-primary h-12"
         >
-          {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-          Simpan Catatan
+          {isSaving ? (
+            <div className="flex items-center justify-center gap-3">
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              <span>Menyimpan...</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Save className="h-5 w-5" />
+              <span>Simpan Jurnal</span>
+            </div>
+          )}
         </Button>
       </div>
 
-      {/* ... Tampilan Hasil Analisis Emosi ... */}
+      {/* Messages - Modern Organik */}
+      {infoMessage && !error && (
+        <div className="card-organic rounded-2xl p-4 bg-gradient-to-r from-blue-50/50 to-sky-50/50 border border-blue-200/30">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center">
+              <Info className="h-4 w-4 text-blue-600" />
+            </div>
+            <div>
+              <div className="font-medium text-blue-800">Informasi</div>
+              <div className="text-sm text-blue-700">{infoMessage}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="card-organic rounded-2xl p-4 bg-gradient-to-r from-red-50/50 to-pink-50/50 border border-red-200/30">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-red-100 to-red-200 rounded-xl flex items-center justify-center">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+            </div>
+            <div>
+              <div className="font-medium text-red-800">Terjadi Kesalahan</div>
+              <div className="text-sm text-red-700">{error}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Emotion Analysis Results - Modern Organik */}
       {emotionData && !isAnalyzingEmotion && (
-        <div className="mt-6 space-y-3 p-4 border rounded-md bg-muted/30">
-          <h3 className="text-lg font-semibold border-b pb-2 mb-2">Hasil Analisis Emosi</h3>
-          <div>
-            <p className="text-base">
-              Emosi Dominan: <strong className="text-lg text-primary">{emotionData.top_prediction.label}</strong> ({emotionData.top_prediction.confidence.toFixed(2)}%)
-            </p>
-            <p className="text-sm mt-2 text-muted-foreground">Detail Prediksi:</p>
-            <ul className="text-xs list-disc list-inside pl-1 mt-1 grid grid-cols-2 sm:grid-cols-3 gap-x-4">
-              {Object.entries(emotionData.all_predictions)
-                .sort(([, a], [, b]) => b - a) // Urutkan dari tertinggi ke terendah
-                .map(([key, value]) => (
-                  <li key={key} className="break-inside-avoid my-0.5">{key}: {value.toFixed(2)}%</li>
-                ))}
-            </ul>
+        <div className="card-organic rounded-3xl p-6 bg-gradient-to-r from-purple-50/50 to-pink-50/50 border border-purple-200/30">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-200/40">
+              <Sparkles className="h-5 w-5 text-white" />
+            </div>
+            <h3 className="text-lg font-semibold text-organic-title">Hasil Analisis Emosi AI</h3>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="card-organic rounded-2xl p-4 bg-white/80">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-organic-secondary mb-2">Emosi dominan yang terdeteksi:</p>
+                  <p className="text-2xl font-bold text-purple-700 mb-1">
+                    {emotionData.top_prediction.label}
+                  </p>
+                  <p className="text-sm text-organic-secondary">
+                    Tingkat kepercayaan: {emotionData.top_prediction.confidence.toFixed(2)}%
+                  </p>
+                </div>
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center">
+                  <span className="text-2xl">🎯</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="card-organic rounded-2xl p-4 bg-white/80">
+              <h4 className="font-medium text-organic-title mb-3 flex items-center gap-2">
+                <Brain className="h-4 w-4 text-purple-600" />
+                Detail Analisis Lengkap
+              </h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                {Object.entries(emotionData.all_predictions)
+                  .sort(([, a], [, b]) => b - a)
+                  .map(([key, value]) => (
+                    <div key={key} className="bg-gradient-to-r from-stone-50 to-white rounded-xl p-3 border border-stone-200/50 text-center">
+                      <div className="font-medium text-sm text-organic-title capitalize mb-1">{key}</div>
+                      <div className="text-xs text-organic-secondary mb-2">{value.toFixed(1)}%</div>
+                      <div className="w-full bg-stone-200 rounded-full h-1.5">
+                        <div 
+                          className="bg-gradient-to-r from-purple-400 to-pink-400 h-1.5 rounded-full transition-all duration-500"
+                          style={{ width: `${value}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
           </div>
         </div>
       )}

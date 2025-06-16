@@ -1,3 +1,5 @@
+/* Import Google Fonts untuk Modern Organik theme */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Nunito+Sans:wght@300;400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -63,50 +65,648 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-organik;
   }
 }
 
-/* ...existing code... */
+@layer components {
+  /* Modern Organik Base Components */
+  .card-organic {
+    @apply bg-white/80 backdrop-blur-sm rounded-3xl;
+    box-shadow: 
+      0 4px 20px -2px rgba(0, 0, 0, 0.08),
+      0 2px 8px -2px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(231, 229, 228, 0.3);
+  }
 
-/* Mobile specific styles */
-@media (max-width: 768px) {
-  .container {
-    padding-left: 1rem;
-    padding-right: 1rem;
+  .card-organic:hover {
+    box-shadow: 
+      0 8px 30px -2px rgba(0, 0, 0, 0.12),
+      0 4px 12px -2px rgba(0, 0, 0, 0.06);
+  }
+
+  .container-organic {
+    @apply max-w-full mx-auto px-5;
+  }
+
+  @media (min-width: 768px) {
+    .container-organic {
+      @apply max-w-md px-6;
+    }
+  }
+
+  /* Organic Button Styles */
+  .btn-organic-primary {
+    @apply bg-gradient-to-r from-emerald-400 to-teal-400 text-white;
+    @apply rounded-2xl px-6 py-3 font-medium;
+    @apply shadow-lg shadow-emerald-200/40;
+    @apply transition-all duration-300 ease-out;
+    @apply hover:shadow-xl hover:shadow-emerald-200/60;
+    @apply active:scale-95;
+  }
+
+  .btn-organic-secondary {
+    @apply bg-stone-100/80 text-stone-600;
+    @apply rounded-2xl px-6 py-3 font-medium;
+    @apply shadow-sm border border-stone-200/50;
+    @apply transition-all duration-300 ease-out;
+    @apply hover:bg-stone-200/80 hover:shadow-md;
+    @apply active:scale-95;
+  }
+
+  /* Navigation Cards */
+  .navigation-card-organic {
+    @apply card-organic p-6;
+    @apply hover:shadow-lg transition-all duration-300;
+  }
+
+  .navigation-card-organic:hover {
+    @apply animate-gentle-bounce;
+  }
+
+  .navigation-card-journal-organic {
+    @apply bg-gradient-to-r from-blue-50/50 to-indigo-50/50;
+    @apply border border-blue-200/30 hover:border-blue-300/50;
+  }
+
+  .navigation-card-garden-organic {
+    @apply bg-gradient-to-r from-emerald-50/50 to-teal-50/50;
+    @apply border border-emerald-200/30 hover:border-emerald-300/50;
+  }
+
+  .navigation-icon-organic {
+    @apply w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300;
+  }
+
+  .navigation-icon-journal-organic {
+    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+    box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
+  }
+
+  .navigation-icon-garden-organic {
+    background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+    box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4);
+  }
+
+  .navigation-card-organic:hover .navigation-icon-organic {
+    box-shadow: 0 15px 30px -5px rgba(59, 130, 246, 0.6);
+  }
+
+  .navigation-arrow-organic {
+    @apply w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center;
+    @apply opacity-0 transition-opacity duration-300;
+  }
+
+  .navigation-card-organic:hover .navigation-arrow-organic {
+    @apply opacity-100;
+  }
+
+  /* Achievement Cards */
+  .achievement-card-earned-organic {
+    @apply card-organic p-6 text-center;
+    @apply bg-gradient-to-br from-yellow-50/50 to-orange-50/50;
+    @apply border border-yellow-200/30;
+    @apply hover:shadow-lg transition-all duration-300;
+  }
+
+  .achievement-card-target-organic {
+    @apply card-organic p-6 text-center;
+    @apply bg-gradient-to-br from-stone-50/50 to-white/80;
+    @apply border border-stone-200/30;
+    @apply hover:shadow-lg hover:border-emerald-200/50 transition-all duration-300;
+  }
+
+  .achievement-icon-earned-organic {
+    @apply w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-4;
+    @apply shadow-lg transition-all duration-300 animate-organic-float;
+    background: linear-gradient(135deg, #facc15 0%, #f97316 100%);
+    box-shadow: 0 10px 25px -5px rgba(250, 204, 21, 0.4);
+  }
+
+  .achievement-card-earned-organic:hover .achievement-icon-earned-organic {
+    box-shadow: 0 10px 25px -5px rgba(251, 146, 60, 0.6);
+    @apply animate-trophy-shine;
+  }
+
+  .achievement-icon-target-organic {
+    @apply w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-4;
+    @apply shadow-sm transition-all duration-300;
+    background: linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%);
+  }
+
+  .achievement-card-target-organic:hover .achievement-icon-target-organic {
+    @apply shadow-md;
+  }
+
+  .achievement-card-target-organic:hover .achievement-icon-target-organic svg {
+    @apply text-stone-500;
+  }
+
+  .achievement-badge-earned-organic {
+    @apply bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800;
+    @apply border-yellow-200/50 font-medium rounded-full px-4 py-2;
+  }
+
+  .achievement-badge-target-organic {
+    @apply border-stone-300 text-stone-600 font-medium rounded-full px-4 py-2;
+    @apply transition-all duration-300;
+  }
+
+  .achievement-card-target-organic:hover .achievement-badge-target-organic {
+    @apply border-emerald-300 text-emerald-700;
+  }
+
+  /* Tab System */
+  .tabs-trigger-organic {
+    @apply flex-1 py-3 px-6 rounded-2xl text-sm font-medium;
+    @apply transition-all duration-300;
+    @apply text-stone-500 hover:text-stone-700;
+  }
+
+  .tabs-trigger-active-organic {
+    @apply bg-gradient-to-r from-emerald-500 to-teal-500 text-white;
+    @apply shadow-lg shadow-emerald-200/40;
+  }
+
+  /* Form Elements */
+  .form-input-organic {
+    @apply w-full h-12 px-4 rounded-2xl;
+    @apply bg-white/50 border border-stone-200/50;
+    @apply focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200/50;
+    @apply font-organik text-stone-600;
+    @apply transition-all duration-300;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+
+  .form-input-organic:focus {
+    @apply outline-none;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 20px rgba(52, 211, 153, 0.1);
+  }
+
+  .form-textarea-organic {
+    @apply w-full min-h-[120px] p-4 rounded-2xl;
+    @apply bg-white/50 border border-stone-200/50;
+    @apply focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200/50;
+    @apply resize-none font-organik text-stone-600;
+    @apply transition-all duration-300;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+
+  .form-textarea-organic:focus {
+    @apply outline-none;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 20px rgba(52, 211, 153, 0.1);
+  }
+
+  /* Writing Interface */
+  .writing-textarea-organic {
+    @apply w-full min-h-[300px] p-6 rounded-2xl;
+    @apply bg-white/50 border border-stone-200/50;
+    @apply focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200/50;
+    @apply resize-none font-organik text-stone-600;
+    @apply transition-all duration-300;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+
+  .writing-textarea-organic:focus {
+    @apply outline-none;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 20px rgba(52, 211, 153, 0.1);
+  }
+
+  /* Search Interface */
+  .search-input-organic {
+    @apply w-full h-12 pl-12 pr-4 rounded-2xl;
+    @apply bg-white/50 border border-stone-200/50;
+    @apply focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200/50;
+    @apply font-organik text-stone-600;
+    @apply transition-all duration-300;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+
+  .search-input-organic:focus {
+    @apply outline-none;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 20px rgba(52, 211, 153, 0.1);
+  }
+
+  /* Modal Styles */
+  .modal-overlay-organic {
+    @apply fixed inset-0 bg-black/20 backdrop-blur-sm z-50;
+    @apply flex items-center justify-center p-4;
+  }
+
+  .modal-content-organic {
+    @apply card-organic p-8 max-w-lg w-full;
+    @apply bg-white/95 backdrop-blur-lg border border-stone-200/50;
+    @apply shadow-xl;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* Alert Dialog */
+  .alert-dialog-organic {
+    @apply bg-white/95 backdrop-blur-lg border-stone-200/50 shadow-xl rounded-3xl;
+    @apply font-organik max-w-md;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(231, 229, 228, 0.3);
+    box-shadow: 
+      0 20px 40px -4px rgba(0, 0, 0, 0.1),
+      0 8px 16px -4px rgba(0, 0, 0, 0.06);
+  }
+
+  .alert-dialog-action-danger-organic {
+    @apply w-full sm:w-auto order-1 sm:order-2;
+    @apply bg-gradient-to-r from-red-500 to-red-600;
+    @apply hover:from-red-600 hover:to-red-700;
+    @apply text-white rounded-2xl px-6 py-3 font-medium;
+    @apply shadow-lg shadow-red-200/40;
+    @apply transition-all duration-300;
+    @apply hover:shadow-xl hover:shadow-red-200/60;
+    @apply active:scale-95;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Settings Cards */
+  .settings-card-logout-organic {
+    @apply w-full card-organic p-6;
+    @apply bg-gradient-to-r from-red-50/50 to-pink-50/50;
+    @apply border border-red-200/30 hover:shadow-lg hover:border-red-300/50;
+    @apply transition-all duration-300;
+  }
+
+  .settings-card-logout-organic:hover {
+    @apply animate-gentle-bounce;
+  }
+
+  .settings-icon-logout-organic {
+    @apply w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300;
+    background: linear-gradient(135deg, #ef4444 0%, #ec4899 100%);
+    box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.4);
+  }
+
+  .settings-card-logout-organic:hover .settings-icon-logout-organic {
+    box-shadow: 0 15px 30px -5px rgba(239, 68, 68, 0.6);
+  }
+
+  /* Delete Button */
+  .delete-btn-organic {
+    @apply text-red-600 hover:bg-red-50/80 hover:text-red-700;
+    @apply border border-transparent hover:border-red-200/50;
+    @apply rounded-xl h-10 transition-all duration-300 font-medium;
+  }
+
+  .delete-btn-organic:hover {
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);
+    @apply animate-gentle-shake;
+  }
+
+  /* Badges */
+  .badge-organic {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full;
+    @apply text-xs font-medium;
+  }
+
+  .badge-success-organic {
+    @apply bg-emerald-100 text-emerald-700 border border-emerald-200;
+  }
+
+  .badge-error-organic {
+    @apply bg-red-100 text-red-700 border border-red-200;
+  }
+
+  .badge-warning-organic {
+    @apply bg-amber-100 text-amber-700 border border-amber-200;
+  }
+
+  .badge-info-organic {
+    @apply bg-blue-100 text-blue-700 border border-blue-200;
+  }
+
+  .badge-neutral-organic {
+    @apply bg-stone-100 text-stone-700 border border-stone-200;
+  }
+
+  /* Skeleton Loading */
+  .skeleton-organic {
+    @apply bg-gradient-to-r from-stone-200 via-stone-100 to-stone-200;
+    @apply rounded-2xl animate-skeleton-wave;
+    background-size: 200% 100%;
+  }
+
+  .skeleton-text-organic {
+    @apply h-4 skeleton-organic;
+  }
+
+  .skeleton-title-organic {
+    @apply h-6 skeleton-organic;
+  }
+
+  .skeleton-avatar-organic {
+    @apply w-12 h-12 rounded-full skeleton-organic;
+  }
+
+  .skeleton-card-organic {
+    @apply h-32 skeleton-organic;
+  }
+
+  /* Progress Bars */
+  .progress-container-organic {
+    @apply w-full bg-stone-200 rounded-full h-2 overflow-hidden;
+  }
+
+  .progress-bar-value-organic {
+    @apply h-full rounded-full transition-all duration-700 ease-out;
+    background: linear-gradient(to right, #10b981, #14b8a6);
+  }
+
+  .progress-bar-success-organic {
+    background: linear-gradient(to right, #10b981, #14b8a6);
+  }
+
+  .progress-bar-warning-organic {
+    background: linear-gradient(to right, #f59e0b, #f97316);
+  }
+
+  .progress-bar-error-organic {
+    background: linear-gradient(to right, #ef4444, #dc2626);
   }
 }
 
-/* Safe area for iOS devices */
-.safe-area-pb {
-  padding-bottom: env(safe-area-inset-bottom);
+@layer utilities {
+  /* Mobile specific styles */
+  @media (max-width: 768px) {
+    .container {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
+
+  /* Safe area for iOS devices */
+  .safe-area-pb {
+    padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+  }
+
+  /* Hide scrollbar on mobile */
+  @media (max-width: 768px) {
+    ::-webkit-scrollbar {
+      display: none;
+    }
+    
+    * {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  }
+
+  /* Bottom navigation styles */
+  .bottom-nav-item {
+    @apply flex flex-col items-center justify-center p-2 rounded-lg transition-colors;
+  }
+
+  .bottom-nav-item.active {
+    @apply text-blue-600;
+  }
+
+  .bottom-nav-item.inactive {
+    @apply text-gray-500 hover:text-gray-700;
+  }
+
+  .bottom-nav-fab {
+    @apply bg-blue-500 text-white shadow-lg scale-110 -mt-3 rounded-full p-3;
+  }
+
+  /* Bottom navigation Modern Organik enhancements */
+  .bottom-nav-organic {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .bottom-nav-item-organic {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .bottom-nav-item-organic:hover {
+    @apply animate-gentle-bounce;
+  }
+
+  .bottom-nav-fab-organic {
+    @apply bg-gradient-to-br from-emerald-400 via-teal-400 to-blue-400;
+    box-shadow: 
+      0 10px 25px -5px rgba(52, 211, 153, 0.3),
+      0 4px 6px -2px rgba(52, 211, 153, 0.1);
+  }
+
+  .bottom-nav-fab-organic:hover {
+    box-shadow: 
+      0 20px 35px -5px rgba(52, 211, 153, 0.4),
+      0 8px 12px -2px rgba(52, 211, 153, 0.2);
+    @apply animate-soft-pulse;
+  }
+
+  /* Header organic styling */
+  .header-organic {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: linear-gradient(
+      to right, 
+      rgba(255, 255, 255, 0.95) 0%, 
+      rgba(250, 250, 249, 0.95) 100%
+    );
+    border-bottom: 1px solid rgba(231, 229, 228, 0.3);
+    box-shadow: 
+      0 1px 3px rgba(0, 0, 0, 0.05),
+      0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Background patterns */
+  .pattern-organic::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      radial-gradient(circle at 20% 80%, rgba(156, 175, 136, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(135, 206, 235, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(255, 215, 0, 0.03) 0%, transparent 50%);
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  /* Spacing utilities */
+  .space-organic-y > * + * {
+    margin-top: 1.5rem;
+  }
+
+  .space-organic-y-lg > * + * {
+    margin-top: 2rem;
+  }
+
+  /* Focus states */
+  .focus-organic:focus {
+    outline: none;
+    box-shadow: 
+      0 0 0 3px rgba(156, 175, 136, 0.1),
+      0 0 0 1px rgba(156, 175, 136, 0.2);
+  }
+
+  /* Custom scrollbar untuk desktop */
+  @media (min-width: 769px) {
+    .scrollbar-organic::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .scrollbar-organic::-webkit-scrollbar-track {
+      background: rgba(245, 245, 244, 0.5);
+      border-radius: 3px;
+    }
+    
+    .scrollbar-organic::-webkit-scrollbar-thumb {
+      background: linear-gradient(to bottom, #10b981, #14b8a6);
+      border-radius: 3px;
+    }
+    
+    .scrollbar-organic::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(to bottom, #059669, #0f766e);
+    }
+  }
+
+  /* Utility classes */
+  .text-balance-organic {
+    text-wrap: balance;
+  }
+
+  .text-pretty-organic {
+    text-wrap: pretty;
+  }
+
+  .scroll-smooth-organic {
+    scroll-behavior: smooth;
+  }
+
+  .backdrop-organic {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* Screen reader utilities */
+  .sr-only-organic {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .not-sr-only-organic {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
 }
 
-/* Hide scrollbar on mobile */
-@media (max-width: 768px) {
-  ::-webkit-scrollbar {
-    display: none;
+/* Print Styles */
+@media print {
+  .no-print-organic {
+    display: none !important;
+  }
+  
+  .print-organic {
+    @apply text-stone-800 bg-white;
+  }
+  
+  .card-organic {
+    @apply border border-stone-300 shadow-none;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .card-organic {
+    @apply border-2 border-stone-400;
+  }
+  
+  .text-organic-body {
+    @apply text-stone-900;
+  }
+  
+  .text-organic-secondary {
+    @apply text-stone-700;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-organic-float,
+  .animate-trophy-shine,
+  .animate-gentle-bounce,
+  .animate-soft-pulse,
+  .animate-gentle-shake {
+    animation: none;
   }
   
   * {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
 
-/* Bottom navigation styles */
-.bottom-nav-item {
-  @apply flex flex-col items-center justify-center p-2 rounded-lg transition-colors;
+/* Dark Mode Support (Future Enhancement) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-off-white: #1f2937;
+    --color-stone-50: #374151;
+    --color-stone-100: #4b5563;
+    --color-stone-200: #6b7280;
+  }
 }
 
-.bottom-nav-item.active {
-  @apply text-blue-600;
+/* Additional responsive breakpoints */
+@media (max-width: 480px) {
+  .container-organic {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  .card-organic {
+    @apply rounded-2xl p-4;
+  }
+  
+  .modal-content-organic {
+    @apply rounded-2xl p-6;
+  }
 }
 
-.bottom-nav-item.inactive {
-  @apply text-gray-500 hover:text-gray-700;
+@media (min-width: 1440px) {
+  .container-organic {
+    max-width: 32rem;
+  }
 }
 
-.bottom-nav-fab {
-  @apply bg-blue-500 text-white shadow-lg scale-110 -mt-3 rounded-full p-3;
+/* Mobile responsive untuk alert dialog */
+@media (max-width: 640px) {
+  .alert-dialog-organic {
+    margin: 1rem;
+    max-width: calc(100vw - 2rem);
+  }
 }
+
+/* End of Modern Organik Design System */

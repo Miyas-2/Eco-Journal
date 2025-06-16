@@ -115,7 +115,7 @@ export default async function HomePage() {
   // Urutkan berdasarkan waktu terbaru
   activities.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
 
-  // Ambil 5 aktivitas terbaru
+  // Ambil 3 aktivitas terbaru
   const recentActivities = activities.slice(0, 3);
 
   // Fungsi untuk format waktu relatif
@@ -139,51 +139,88 @@ export default async function HomePage() {
     <>
       <DashboardNotifications />
       
-      <div className="p-4 space-y-6">
-        {/* Welcome Section */}
-        <section className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white">
-          <h1 className="text-2xl font-bold mb-2">Halo, {displayName}! 👋</h1>
-          <p className="text-blue-100 mb-4">
-            Bagaimana perasaanmu hari ini? Yuk ceritakan dalam jurnal.
-          </p>
-          <Button asChild variant="secondary" className="bg-white text-blue-600 hover:bg-blue-50">
-            <Link href="/protected/journal/new">
-              Mulai Menulis
-            </Link>
-          </Button>
-        </section>
-
-        {/* Quick Stats */}
-        <section className="grid grid-cols-3 gap-4">
-          <div className="bg-white rounded-lg p-4 text-center border">
-            <Calendar className="h-6 w-6 text-blue-500 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{journalCount?.length || 0}</div>
-            <div className="text-xs text-gray-500">Jurnal</div>
-          </div>
-          
-          <div className="bg-white rounded-lg p-4 text-center border">
-            <TrendingUp className="h-6 w-6 text-green-500 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{profile?.current_streak || 0}</div>
-            <div className="text-xs text-gray-500">Hari Berturut</div>
-          </div>
-          
-          <div className="bg-white rounded-lg p-4 text-center border">
-            <Award className="h-6 w-6 text-yellow-500 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{profile?.total_points || 0}</div>
-            <div className="text-xs text-gray-500">Poin</div>
+      <div className="space-organic-y-lg">
+        {/* Welcome Section - Modern Organik Style */}
+        <section className="card-organic m-2 rounded-3xl p-6 bg-gradient-to-br from-emerald-400/10 via-teal-400/10 to-sky-blue/10 border-0 pattern-organic relative overflow-hidden">
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200/40 float-organic">
+                <span className="text-white text-xl">🌱</span>
+              </div>
+              <div>
+                <h1 className="text-2xl font-semibold text-organic-title mb-1">
+                  Halo, {displayName}! 
+                </h1>
+                <p className="text-organic-secondary text-sm">
+                  Selamat datang kembali di perjalanan mindfulness-mu
+                </p>
+              </div>
+            </div>
+            
+            <p className="text-organic-body mb-6 leading-relaxed">
+              Bagaimana perasaanmu hari ini? Mari luangkan waktu sejenak untuk merefleksikan momen-momen berharga.
+            </p>
+            
+            <Button asChild className="btn-organic-primary">
+              <Link href="/protected/journal/new" className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                Mulai Menulis Jurnal
+              </Link>
+            </Button>
           </div>
         </section>
 
-        {/* Recent Activity - Dynamic */}
-        <section className="bg-white rounded-lg p-4 border">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <Clock className="h-5 w-5 text-gray-600" />
+        {/* Quick Stats - Modern Organik Grid */}
+        <section className="grid grid-cols-3 gap-4 m-2">
+          <div className="card-organic rounded-2xl p-4 text-center hover:scale-105 transition-transform duration-300">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <Calendar className="h-6 w-6 text-blue-600" />
+            </div>
+            <div className="text-2xl font-bold text-organic-title mb-1">
+              {journalCount?.length || 0}
+            </div>
+            <div className="text-xs text-organic-secondary font-medium">
+              Total Jurnal
+            </div>
+          </div>
+          
+          <div className="card-organic rounded-2xl p-4 text-center hover:scale-105 transition-transform duration-300">
+            <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <TrendingUp className="h-6 w-6 text-emerald-600" />
+            </div>
+            <div className="text-2xl font-bold text-organic-title mb-1">
+              {profile?.current_streak || 0}
+            </div>
+            <div className="text-xs text-organic-secondary font-medium">
+              Hari Berturut
+            </div>
+          </div>
+          
+          <div className="card-organic rounded-2xl p-4 text-center hover:scale-105 transition-transform duration-300">
+            <div className="w-12 h-12 bg-gradient-to-br from-amber-100 to-yellow-200 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <Award className="h-6 w-6 text-amber-600" />
+            </div>
+            <div className="text-2xl font-bold text-organic-title mb-1">
+              {profile?.total_points || 0}
+            </div>
+            <div className="text-xs text-organic-secondary font-medium">
+              Total Poin
+            </div>
+          </div>
+        </section>
+
+        {/* Recent Activity - Modern Organik Design */}
+        <section className="card-organic rounded-3xl p-6 m-2">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold text-organic-title flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-stone-100 to-stone-200 rounded-xl flex items-center justify-center">
+                <Clock className="h-4 w-4 text-stone-600" />
+              </div>
               Aktivitas Terbaru
             </h2>
             {recentActivities.length > 0 && (
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/protected/journal/history" className="text-blue-600 text-sm">
+              <Button variant="ghost" size="sm" asChild className="text-organic-accent hover:bg-emerald-50 rounded-xl">
+                <Link href="/protected/journal/history">
                   Lihat Semua
                 </Link>
               </Button>
@@ -191,46 +228,70 @@ export default async function HomePage() {
           </div>
 
           {recentActivities.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-              <p>Belum ada aktivitas</p>
-              <p className="text-sm">Mulai dengan menulis jurnal pertamamu!</p>
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gradient-to-br from-stone-100 to-stone-200 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                <Calendar className="h-8 w-8 text-stone-400" />
+              </div>
+              <h3 className="text-lg font-medium text-organic-title mb-2">
+                Belum ada aktivitas
+              </h3>
+              <p className="text-organic-secondary mb-4">
+                Mulai perjalanan mindfulness-mu dengan menulis jurnal pertama
+              </p>
+              <Button asChild className="btn-organic-secondary">
+                <Link href="/protected/journal/new">
+                  Tulis Jurnal Pertama
+                </Link>
+              </Button>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {recentActivities.map((activity) => {
                 const ActivityIcon = activity.icon;
                 const EmotionIcon = activity.emotionDisplay?.icon;
                 
                 return (
-                  <div key={activity.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activity.bgColor}`}>
+                  <div 
+                    key={activity.id} 
+                    className="flex items-center gap-4 p-4 rounded-2xl hover:bg-stone-50/50 transition-all duration-300 group border border-stone-100/50"
+                  >
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${activity.bgColor} group-hover:scale-110 transition-transform duration-300`}>
                       <ActivityIcon className={`h-5 w-5 ${activity.color}`} />
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="font-medium text-gray-900 truncate">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-medium text-organic-title truncate">
                           {activity.title}
-                        </p>
+                        </h3>
                         {activity.emotionDisplay && EmotionIcon && (
-                          <Badge variant="outline" className="text-xs px-2 py-0.5">
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs px-2 py-1 rounded-full border-emerald-200 text-emerald-700 bg-emerald-50"
+                          >
                             <EmotionIcon className="h-3 w-3 mr-1" />
                             {activity.emotionDisplay.emotion}
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 truncate">{activity.subtitle}</p>
-                      <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                      <p className="text-sm text-organic-secondary truncate mb-1">
+                        {activity.subtitle}
+                      </p>
+                      <p className="text-xs text-organic-caption flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {getRelativeTime(activity.time)}
                       </p>
                     </div>
 
                     {activity.href && (
-                      <Button variant="ghost" size="sm" asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        asChild 
+                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-organic-accent hover:bg-emerald-50 rounded-xl"
+                      >
                         <Link href={activity.href}>
-                          <span className="text-blue-600 text-sm">Lihat</span>
+                          Lihat
                         </Link>
                       </Button>
                     )}
@@ -241,21 +302,48 @@ export default async function HomePage() {
           )}
         </section>
 
-        {/* Quick Actions */}
-        <section className="grid grid-cols-2 gap-4">
-          <Button asChild variant="outline" className="h-16">
-            <Link href="/protected/journal/history" className="flex flex-col items-center">
-              <Calendar className="h-5 w-5 mb-1" />
-              <span className="text-sm">Lihat Riwayat</span>
+        {/* Quick Actions - Modern Organik Style */}
+        <section className="grid grid-cols-2 gap-4 m-2">
+          <Button 
+            asChild 
+            variant="outline" 
+            className="h-20 flex-col gap-3 border-stone-200/50 hover:border-emerald-200 hover:bg-emerald-50/50 rounded-2xl transition-all duration-300"
+          >
+            <Link href="/protected/journal/history">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center">
+                <Calendar className="h-4 w-4 text-blue-600" />
+              </div>
+              <span className="text-sm font-medium text-organic-title">Riwayat Jurnal</span>
             </Link>
           </Button>
           
-          <Button asChild variant="outline" className="h-16">
-            <Link href="/protected/garden" className="flex flex-col items-center">
-              <Award className="h-5 w-5 mb-1" />
-              <span className="text-sm">Lencana Saya</span>
+          <Button 
+            asChild 
+            variant="outline" 
+            className="h-20 flex-col gap-3 border-stone-200/50 hover:border-emerald-200 hover:bg-emerald-50/50 rounded-2xl transition-all duration-300"
+          >
+            <Link href="/protected/garden">
+              <div className="w-8 h-8 bg-gradient-to-br from-amber-100 to-yellow-200 rounded-xl flex items-center justify-center">
+                <Award className="h-4 w-4 text-amber-600" />
+              </div>
+              <span className="text-sm font-medium text-organic-title">Taman Lencana</span>
             </Link>
           </Button>
+        </section>
+
+        {/* Mindfulness Quote - Organic Touch */}
+        <section className="card-organic rounded-3xl p-6 bg-gradient-to-r from-stone-50/50 to-white/50 border-stone-200/30">
+          <div className="text-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <span className="text-lg">🌸</span>
+            </div>
+            <blockquote className="text-organic-body italic leading-relaxed mb-2">
+              "Setiap hari adalah kesempatan baru untuk tumbuh dan merefleksikan diri."
+            </blockquote>
+            <cite className="text-xs text-organic-caption font-medium">
+              — Eco Journal
+            </cite>
+          </div>
         </section>
       </div>
     </>

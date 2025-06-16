@@ -1,11 +1,12 @@
+import React from "react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ListChecks, Smile, CalendarDays, TrendingUp, TrendingDown, MinusCircle, Pencil } from "lucide-react"; // IMPORT ICON BARU
+import { ArrowLeft, ListChecks, Smile, CalendarDays, TrendingUp, TrendingDown, MinusCircle, Edit, Eye, MapPin, Brain, Heart, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { WeatherApiResponse, EmotionApiResponse } from "@/types"; // Pastikan path ini benar
-import JournalDetailWeatherSection from "@/components/edukasi/JournalDetailWeatherSection"; // Jika masih digunakan
+import { WeatherApiResponse, EmotionApiResponse } from "@/types";
+import JournalDetailWeatherSection from "@/components/edukasi/JournalDetailWeatherSection";
 import JournalInsightSection from "@/components/journal/JournalInsightSection";
 
 export default async function JournalDetailPage({ params }: { params: { id: string } }) {
@@ -19,7 +20,7 @@ export default async function JournalDetailPage({ params }: { params: { id: stri
   const { id: journalId } = await params;
   const { data: journal, error: journalError } = await supabase
     .from("journal_entries")
-    .select("*, emotions(name)") // emotions(name) untuk emosi manual, mood_score sudah termasuk di '*'
+    .select("*, emotions(name)")
     .eq("id", journalId)
     .eq("user_id", user.id)
     .single();
@@ -57,42 +58,62 @@ export default async function JournalDetailPage({ params }: { params: { id: stri
     if (score === null || score === undefined) {
       return {
         label: "Tidak Ada Data",
-        color: "text-gray-500",
-        bgColor: "bg-gray-100",
+        color: "text-stone-500",
+        bgColor: "bg-stone-100",
+        gradientClass: "from-stone-100 to-stone-200",
         Icon: MinusCircle,
         description: "Mood score tidak tersedia untuk entri ini.",
-        barClass: "bg-gray-300",
+        barClass: "bg-stone-300",
         barWidth: "0%",
-        barOffset: "50%" // Tengah, tidak ada bar
+        barOffset: "50%"
       };
     }
-    let label, color, bgColor, Icon, description;
+    let label, color, bgColor, gradientClass, Icon, description;
     if (score >= 0.5) {
-      label = "Sangat Positif"; color = "text-green-600"; bgColor = "bg-green-100"; Icon = TrendingUp;
-      description = "Anda merasa sangat positif dan bersemangat!";
+      label = "Sangat Positif"; 
+      color = "text-emerald-700"; 
+      bgColor = "bg-emerald-50"; 
+      gradientClass = "from-emerald-100 to-emerald-200";
+      Icon = TrendingUp;
+      description = "Anda merasa sangat positif dan bersemangat! ✨";
     } else if (score >= 0.1) {
-      label = "Positif"; color = "text-emerald-600"; bgColor = "bg-emerald-100"; Icon = TrendingUp;
-      description = "Anda dalam suasana hati yang baik.";
+      label = "Positif"; 
+      color = "text-emerald-600"; 
+      bgColor = "bg-emerald-50"; 
+      gradientClass = "from-emerald-100 to-teal-100";
+      Icon = TrendingUp;
+      description = "Anda dalam suasana hati yang baik. 🌱";
     } else if (score > -0.1) {
-      label = "Netral"; color = "text-yellow-600"; bgColor = "bg-yellow-100"; Icon = MinusCircle;
-      description = "Suasana hati Anda seimbang.";
+      label = "Netral"; 
+      color = "text-amber-600"; 
+      bgColor = "bg-amber-50"; 
+      gradientClass = "from-amber-100 to-yellow-100";
+      Icon = MinusCircle;
+      description = "Suasana hati Anda seimbang. ⚖️";
     } else if (score > -0.5) {
-      label = "Negatif"; color = "text-orange-600"; bgColor = "bg-orange-100"; Icon = TrendingDown;
-      description = "Anda merasa sedikit kurang baik atau tertekan.";
+      label = "Negatif"; 
+      color = "text-orange-600"; 
+      bgColor = "bg-orange-50"; 
+      gradientClass = "from-orange-100 to-red-100";
+      Icon = TrendingDown;
+      description = "Anda merasa sedikit kurang baik atau tertekan. 🤗";
     } else {
-      label = "Sangat Negatif"; color = "text-red-600"; bgColor = "bg-red-100"; Icon = TrendingDown;
-      description = "Anda merasa sangat negatif atau sedih.";
+      label = "Sangat Negatif"; 
+      color = "text-red-600"; 
+      bgColor = "bg-red-50"; 
+      gradientClass = "from-red-100 to-pink-100";
+      Icon = TrendingDown;
+      description = "Anda merasa sangat negatif atau sedih. 💙";
     }
-
-    const barPercentage = (score + 1) * 50; // 0% at -1, 50% at 0, 100% at 1
 
     return {
       label,
       color,
       bgColor,
+      gradientClass,
       Icon,
       description,
-      barClass: score >= 0 ? 'bg-green-500' : 'bg-red-500',
+      barClass: score >= 0 ? 'bg-gradient-to-r from-emerald-400 to-teal-400' : 'bg-gradient-to-r from-orange-400 to-red-400',
       barWidth: `${Math.abs(score) * 50}%`,
       barOffset: score >= 0 ? '50%' : `${50 - (Math.abs(score) * 50)}%`
     };
@@ -102,84 +123,184 @@ export default async function JournalDetailPage({ params }: { params: { id: stri
   const MoodIcon = moodDisplay.Icon;
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-      <div className="mb-6">
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/protected/journal/history" className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Kembali ke Histori
-          </Link>
-        </Button>
-      </div>
-      <article className="bg-card p-6 sm:p-8 rounded-lg shadow-md border space-y-6">
-        <header className="border-b pb-4 mb-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-1">
-                {journal.title || <span className="italic">Tanpa Judul</span>}
-              </h1>
-              <div className="flex items-center text-sm text-muted-foreground">
-                <CalendarDays className="h-4 w-4 mr-1.5" />
-                <span>{new Date(journal.created_at).toLocaleString("id-ID", { dateStyle: 'full', timeStyle: 'short' })}</span>
-              </div>
-            </div>
-            <div className="flex flex-col items-start sm:items-end gap-2 mt-2 sm:mt-0">
-              {primaryEmotionForInsight !== "tidak diketahui" && (
-                <Badge variant="outline" className="text-sm whitespace-nowrap">
-                  Emosi: {primaryEmotionForInsight}
-                </Badge>
-              )}
-              {/* Mood Score Badge */}
-              <div className={`${moodDisplay.bgColor} ${moodDisplay.color} px-3 py-1.5 rounded-md border text-xs sm:text-sm font-medium flex items-center gap-2 self-start sm:self-auto`}>
-                <MoodIcon className="h-4 w-4" />
-                <span>Mood: {moodDisplay.label} ({journal.mood_score !== null && journal.mood_score !== undefined ? journal.mood_score.toFixed(2) : 'N/A'})</span>
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-white to-stone-50/80 font-organik">
+      {/* Header Section - More Compact Mobile */}
+      <div className="bg-gradient-to-r from-white/95 to-stone-50/95 backdrop-blur-lg border-b border-stone-200/30 sticky top-16 z-30">
+        <div className="container-organic py-3 md:py-6">
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" size="sm" asChild className="hover:bg-emerald-50 text-stone-600 rounded-xl transition-all duration-300">
+              <Link href="/protected/journal/history" className="flex items-center gap-2 md:gap-3">
+                <div className="w-6 h-6 md:w-8 md:h-8 bg-gradient-to-br from-stone-100 to-stone-200 rounded-lg md:rounded-xl flex items-center justify-center">
+                  <ArrowLeft className="h-3 w-3 md:h-4 md:w-4" />
+                </div>
+                <span className="font-medium text-sm md:text-base">Kembali</span>
+              </Link>
+            </Button>
+
+            <div className="flex items-center gap-2 md:gap-3">
+              <Button variant="outline" size="sm" asChild className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 rounded-lg md:rounded-xl transition-all duration-300">
+                <Link href={`/protected/journal/edit/${journal.id}`} className="flex items-center gap-1 md:gap-2">
+                  <Edit className="h-3 w-3 md:h-4 md:w-4" />
+                  <span className="text-xs md:text-sm">Edit</span>
+                </Link>
+              </Button>
             </div>
           </div>
-        </header>
+        </div>
+      </div>
 
-        {/* Bagian Mood Score Interaktif */}
-        <section className="p-4 rounded-lg border bg-gradient-to-br from-slate-50 via-gray-50 to-sky-50 dark:from-slate-800 dark:via-gray-800 dark:to-sky-900">
-          <h2 className="text-xl font-semibold mb-3 flex items-center">
-            <MoodIcon className={`h-5 w-5 mr-2 ${moodDisplay.color}`} />
-            Skor Mood Jurnal
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-            <div className={`md:col-span-1 p-3 rounded-md ${moodDisplay.bgColor} text-center`}>
-              <p className={`text-3xl font-bold ${moodDisplay.color}`}>
-                {journal.mood_score !== null && journal.mood_score !== undefined ? journal.mood_score.toFixed(2) : "N/A"}
-              </p>
-              <p className={`text-sm font-medium ${moodDisplay.color}`}>{moodDisplay.label}</p>
-            </div>
-            <div className="md:col-span-2">
-              <p className="text-sm text-muted-foreground mb-1">Visualisasi Skor (-1.0 s/d +1.0):</p>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3.5 relative overflow-hidden">
-                <div className="absolute top-0 left-1/2 w-px h-full bg-gray-400 dark:bg-gray-500 z-10"></div>
-                {journal.mood_score !== null && journal.mood_score !== undefined && (
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ease-out ${moodDisplay.barClass}`}
-                    style={{
-                      width: moodDisplay.barWidth,
-                      marginLeft: moodDisplay.barOffset,
-                    }}
-                  ></div>
+      <div className="container-organic py-4 md:py-8 space-y-4 md:space-y-6">
+        {/* Journal Header - Compact Mobile */}
+        <section className="card-organic rounded-2xl md:rounded-3xl p-4 md:p-8 bg-gradient-to-br from-emerald-50/30 via-white/50 to-teal-50/30 pattern-organic relative overflow-hidden">
+          <div className="relative z-10">
+            <div className="flex flex-col gap-3 md:gap-6">
+              <div className="flex items-start gap-3 md:gap-4">
+                <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200/40 float-organic">
+                  <Eye className="h-4 w-4 md:h-6 md:w-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-lg md:text-3xl lg:text-4xl font-bold text-stone-700 leading-tight mb-2 md:mb-4">
+                    {journal.title || <span className="italic text-stone-500">Jurnal Tanpa Judul</span>}
+                  </h1>
+                  
+                  {/* Mobile: Stack info vertically, Desktop: horizontal */}
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-xs md:text-sm text-stone-500">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 md:w-6 md:h-6 bg-gradient-to-br from-blue-100 to-blue-200 rounded-md md:rounded-lg flex items-center justify-center">
+                        <CalendarDays className="h-2 w-2 md:h-3 md:w-3 text-blue-600" />
+                      </div>
+                      <span className="font-medium">
+                        {new Date(journal.created_at).toLocaleString("id-ID", { 
+                          dateStyle: 'medium', 
+                          timeStyle: 'short' 
+                        })}
+                      </span>
+                    </div>
+                    
+                    {locationDisplayName && locationDisplayName !== "lokasi tidak diketahui" && (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 md:w-6 md:h-6 bg-gradient-to-br from-green-100 to-green-200 rounded-md md:rounded-lg flex items-center justify-center">
+                          <MapPin className="h-2 w-2 md:h-3 md:w-3 text-green-600" />
+                        </div>
+                        <span className="font-medium truncate">{locationDisplayName}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile: Horizontal badges, Desktop: vertical */}
+              <div className="flex flex-wrap md:flex-col gap-2 md:gap-3 md:self-end">
+                {/* Emotion Badge */}
+                {primaryEmotionForInsight !== "tidak diketahui" && (
+                  <Badge className={`${journal.emotion_source === 'ai' 
+                    ? 'bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 border-purple-200/50' 
+                    : 'bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border-emerald-200/50'
+                  } font-medium rounded-full px-2 md:px-4 py-1 md:py-2 text-xs md:text-sm`}>
+                    {journal.emotion_source === 'ai' ? (
+                      <Brain className="h-2 w-2 md:h-3 md:w-3 mr-1 md:mr-2" />
+                    ) : (
+                      <Heart className="h-2 w-2 md:h-3 md:w-3 mr-1 md:mr-2" />
+                    )}
+                    {primaryEmotionForInsight}
+                  </Badge>
                 )}
+
+                {/* Mood Score Badge */}
+                <div className={`${moodDisplay.bgColor} ${moodDisplay.color} px-2 md:px-4 py-1 md:py-2 rounded-full border border-stone-200/50 text-xs md:text-sm font-medium flex items-center gap-1 md:gap-3 shadow-sm`}>
+                  <MoodIcon className="h-3 w-3 md:h-4 md:w-4" />
+                  <span className="whitespace-nowrap">
+                    {moodDisplay.label}
+                    {journal.mood_score !== null && journal.mood_score !== undefined 
+                      ? ` (${journal.mood_score.toFixed(1)})` 
+                      : ' (N/A)'
+                    }
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between text-xs text-muted-foreground mt-1 px-1">
-                <span>Sangat Negatif</span>
-                <span>Netral</span>
-                <span>Sangat Positif</span>
-              </div>
-              <p className="text-sm mt-3">{moodDisplay.description}</p>
-              {journal.emotion_source && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Sumber skor: {journal.emotion_source === 'ai' ? 'Analisis AI Otomatis' : 'Pilihan Emosi Manual'}
-                </p>
-              )}
             </div>
           </div>
         </section>
 
+        {/* Mood Score Interactive Section - Compact */}
+        <section className={`card-organic rounded-2xl md:rounded-3xl p-4 md:p-8 bg-gradient-to-br ${moodDisplay.gradientClass} border-0`}>
+          <div className="flex items-center gap-2 md:gap-4 mb-4 md:mb-6">
+            <div className={`w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br ${moodDisplay.gradientClass} rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg`}>
+              <MoodIcon className={`h-4 w-4 md:h-6 md:w-6 ${moodDisplay.color}`} />
+            </div>
+            <h2 className="text-lg md:text-2xl font-bold text-stone-700">Analisis Mood</h2>
+          </div>
+
+          {/* Mobile: Single column, Desktop: Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8 items-center">
+            <div className="lg:col-span-1">
+              <div className={`card-organic rounded-2xl md:rounded-3xl p-4 md:p-6 text-center bg-white/80 shadow-lg`}>
+                <div className={`text-2xl md:text-5xl font-bold ${moodDisplay.color} mb-1 md:mb-2`}>
+                  {journal.mood_score !== null && journal.mood_score !== undefined 
+                    ? journal.mood_score.toFixed(2) 
+                    : "N/A"
+                  }
+                </div>
+                <div className={`text-sm md:text-lg font-semibold ${moodDisplay.color} mb-1`}>
+                  {moodDisplay.label}
+                </div>
+                <div className="text-xs md:text-sm text-stone-500">
+                  Skor Mood
+                </div>
+              </div>
+            </div>
+
+            <div className="lg:col-span-2 space-y-3 md:space-y-4">
+              <div>
+                <div className="flex justify-between items-center mb-2 md:mb-3">
+                  <span className="text-xs md:text-sm font-medium text-stone-700">Visualisasi Skor</span>
+                  <span className="text-xs text-stone-500">-1.0 hingga +1.0</span>
+                </div>
+                
+                <div className="relative">
+                  <div className="w-full bg-gradient-to-r from-stone-200 via-stone-100 to-stone-200 rounded-full h-4 md:h-6 relative overflow-hidden shadow-inner">
+                    <div className="absolute top-0 left-1/2 w-px h-full bg-stone-400 z-10"></div>
+                    {journal.mood_score !== null && journal.mood_score !== undefined && (
+                      <div
+                        className={`h-full rounded-full transition-all duration-700 ease-out ${moodDisplay.barClass} shadow-sm`}
+                        style={{
+                          width: moodDisplay.barWidth,
+                          marginLeft: moodDisplay.barOffset,
+                        }}
+                      ></div>
+                    )}
+                  </div>
+                  
+                  <div className="flex justify-between text-xs text-stone-500 mt-1 md:mt-2 px-1">
+                    <span>Negatif</span>
+                    <span>Netral</span>
+                    <span>Positif</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card-organic rounded-xl md:rounded-2xl p-3 md:p-6 bg-white/60">
+                <h4 className="font-semibold text-stone-700 mb-1 md:mb-2 flex items-center gap-2 text-sm md:text-base">
+                  <Sparkles className="h-3 w-3 md:h-4 md:w-4 text-emerald-600" />
+                  Interpretasi
+                </h4>
+                <p className="text-xs md:text-sm text-stone-600 leading-relaxed mb-2 md:mb-3">
+                  {moodDisplay.description}
+                </p>
+                {journal.emotion_source && (
+                  <div className="flex items-center gap-2 text-xs text-stone-500">
+                    <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-emerald-400 rounded-full"></div>
+                    <span>
+                      {journal.emotion_source === 'ai' ? 'AI Otomatis' : 'Pilihan Manual'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Journal Insight Section */}
         <JournalInsightSection
           initialInsightText={initialInsightData?.insight_text || null}
           journalId={journal.id}
@@ -191,13 +312,27 @@ export default async function JournalDetailPage({ params }: { params: { id: stri
           journalCreatedAt={journal.created_at}
         />
 
-        <section>
-          <h2 className="text-xl font-semibold mb-2">Isi Jurnal</h2>
-          <div className="prose prose-sm sm:prose-base max-w-none bg-muted/30 p-4 rounded-md whitespace-pre-line dark:bg-slate-800">
-            {journal.content || <p className="italic">Tidak ada konten jurnal.</p>}
+        {/* Journal Content - Compact */}
+        <section className="card-organic rounded-2xl md:rounded-3xl p-4 md:p-8">
+          <div className="flex items-center gap-2 md:gap-4 mb-4 md:mb-6">
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl md:rounded-2xl flex items-center justify-center">
+              <span className="text-emerald-600 text-sm md:text-lg">📖</span>
+            </div>
+            <h2 className="text-lg md:text-2xl font-bold text-stone-700">Isi Jurnal</h2>
+          </div>
+          
+          <div className="card-organic rounded-xl md:rounded-2xl p-4 md:p-6 bg-gradient-to-br from-stone-50/50 to-white/80 border border-stone-200/30">
+            <div className="prose prose-sm md:prose-lg max-w-none text-stone-600 leading-relaxed whitespace-pre-line">
+              {journal.content || (
+                <p className="italic text-stone-500">
+                  Tidak ada konten jurnal yang tersedia.
+                </p>
+              )}
+            </div>
           </div>
         </section>
 
+        {/* Weather Section */}
         {weatherData && (
           <JournalDetailWeatherSection
             weatherData={weatherData}
@@ -205,32 +340,100 @@ export default async function JournalDetailPage({ params }: { params: { id: stri
           />
         )}
 
+        {/* AI Emotion Analysis - Compact */}
         {journal.emotion_source === "ai" && emotionAnalysisData && (
-          <section>
-            <h2 className="text-xl font-semibold mb-2 flex items-center"><ListChecks className="h-5 w-5 mr-2 text-primary" /> Detail Analisis Emosi (AI)</h2>
-            <div className="bg-muted/30 p-4 rounded-md text-sm dark:bg-slate-800">
-              <p className="mb-1">Emosi Dominan (AI): <strong>{emotionAnalysisData.top_prediction.label}</strong> (Keyakinan: {emotionAnalysisData.top_prediction.confidence.toFixed(2)}%)</p>
-              <h4 className="font-medium mt-3 mb-1 text-xs">Semua Emosi Terdeteksi (AI):</h4>
-              <ul className="list-disc list-inside pl-1 grid grid-cols-2 sm:grid-cols-3 gap-x-2 text-xs">
-                {Object.entries(emotionAnalysisData.all_predictions)
-                  .sort(([, a], [, b]) => b - a)
-                  .map(([key, value]) => (
-                    <li key={key} className="my-0.5">{key}: {value.toFixed(2)}%</li>
-                  ))}
-              </ul>
+          <section className="card-organic rounded-2xl md:rounded-3xl p-4 md:p-8 bg-gradient-to-br from-purple-50/30 to-pink-50/30 border border-purple-200/30">
+            <div className="flex items-center gap-2 md:gap-4 mb-4 md:mb-6">
+              <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shadow-purple-200/40">
+                <Brain className="h-4 w-4 md:h-6 md:w-6 text-white" />
+              </div>
+              <h2 className="text-lg md:text-2xl font-bold text-stone-700">Analisis Emosi AI</h2>
+            </div>
+
+            <div className="space-y-4 md:space-y-6">
+              <div className="card-organic rounded-xl md:rounded-2xl p-4 md:p-6 bg-white/80">
+                <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                  <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-purple-600" />
+                  <h3 className="text-base md:text-lg font-semibold text-stone-700">Emosi Dominan</h3>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-lg md:text-2xl font-bold text-purple-700 mb-1">
+                      {emotionAnalysisData.top_prediction.label}
+                    </p>
+                    <p className="text-xs md:text-sm text-stone-500">
+                      Akurasi: {emotionAnalysisData.top_prediction.confidence.toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl md:rounded-2xl flex items-center justify-center">
+                    <span className="text-lg md:text-2xl">🎯</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card-organic rounded-xl md:rounded-2xl p-4 md:p-6 bg-white/80">
+                <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                  <ListChecks className="h-4 w-4 md:h-5 md:w-5 text-purple-600" />
+                  <h3 className="text-base md:text-lg font-semibold text-stone-700">Detail Analisis</h3>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
+                  {Object.entries(emotionAnalysisData.all_predictions)
+                    .sort(([, a], [, b]) => b - a)
+                    .slice(0, 6) // Limit to 6 items on mobile
+                    .map(([key, value]) => (
+                      <div key={key} className="bg-gradient-to-r from-stone-50 to-white rounded-lg md:rounded-xl p-2 md:p-3 border border-stone-200/50 text-center">
+                        <div className="font-medium text-xs md:text-sm text-stone-700 capitalize mb-1">
+                          {key}
+                        </div>
+                        <div className="text-xs text-stone-500">
+                          {value.toFixed(1)}%
+                        </div>
+                        <div className="w-full bg-stone-200 rounded-full h-1 md:h-1.5 mt-1 md:mt-2">
+                          <div 
+                            className="bg-gradient-to-r from-purple-400 to-pink-400 h-1 md:h-1.5 rounded-full transition-all duration-500"
+                            style={{ width: `${value}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
             </div>
           </section>
         )}
 
+        {/* Manual Emotion Selection - Compact */}
         {journal.emotion_source === "manual" && journal.emotions?.name && (
-          <section>
-            <h2 className="text-xl font-semibold mb-2 flex items-center"><Smile className="h-5 w-5 mr-2 text-primary" /> Emosi Pilihanmu</h2>
-            <div className="bg-muted/30 p-4 rounded-md text-sm dark:bg-slate-800">
-              <p>Emosi utama yang kamu pilih: <strong>{journal.emotions.name}</strong></p>
+          <section className="card-organic rounded-2xl md:rounded-3xl p-4 md:p-8 bg-gradient-to-br from-emerald-50/30 to-teal-50/30 border border-emerald-200/30">
+            <div className="flex items-center gap-2 md:gap-4 mb-4 md:mb-6">
+              <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200/40">
+                <Heart className="h-4 w-4 md:h-6 md:w-6 text-white" />
+              </div>
+              <h2 className="text-lg md:text-2xl font-bold text-stone-700">Emosi Pilihan Anda</h2>
+            </div>
+
+            <div className="card-organic rounded-xl md:rounded-2xl p-4 md:p-6 bg-white/80">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs md:text-sm text-stone-500 mb-1 md:mb-2">Emosi yang Anda pilih:</p>
+                  <p className="text-lg md:text-2xl font-bold text-emerald-700">
+                    {journal.emotions.name}
+                  </p>
+                  <p className="text-xs md:text-sm text-stone-500 mt-1">
+                    Dipilih secara manual
+                  </p>
+                </div>
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl md:rounded-2xl flex items-center justify-center">
+                  <span className="text-lg md:text-2xl">💚</span>
+                </div>
+              </div>
             </div>
           </section>
         )}
-      </article>
+
+        {/* Bottom Spacer for Mobile Navigation */}
+        <div className="h-4 md:h-8"></div>
+      </div>
     </div>
   );
 }
