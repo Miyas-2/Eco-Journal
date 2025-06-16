@@ -3,34 +3,18 @@
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DynamicLucideIcon } from "@/components/ui/dynamic-lucide-icon";
-import { Award, BarChart3, Coins, UserCircle, CheckCircle2, Circle, Trophy, Target, Edit3 } from "lucide-react";
+import { UserCircle, Edit3, LogOut, Settings, BarChart3, Calendar, Flower2, BookOpen, TrendingUp, Smile, Cloud } from "lucide-react";
 import EditDisplayNameModal from "@/components/profile/edit-display-name-modal";
 import { User } from "@supabase/supabase-js";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
-// Definisikan tipe untuk data yang diambil agar lebih jelas
-interface AchievementData {
-    id: string;
-    name: string;
-    description: string;
-    icon_url: string | null;
-    points_reward: number;
-}
-
-// Tipe baru untuk data entri jurnal kalender
-interface JournalEntryDate {
-  date: string; // YYYY-MM-DD
-  count: number; // Jumlah entri pada tanggal tersebut
-}
-
-// Tipe baru untuk achievement yang digabungkan
-interface DisplayAchievement extends AchievementData {
-    earned_at: string | null;
-    is_earned: boolean;
-}
+// Import komponen dashboard statistik
+import MoodTrendChart from "@/components/dashboard/MoodTrendChart";
+import EmotionCompositionPie from "@/components/dashboard/EmotionCompositionPie";
+import JournalWordCloud from "@/components/dashboard/JournalWordCloud";
+import MoodAirCorrelationChart from "@/components/dashboard/MoodAirCorrelationChart";
 
 interface UserProfileData {
     user_id: string;
@@ -39,17 +23,73 @@ interface UserProfileData {
     last_entry_date: string | null;
 }
 
+interface JournalStats {
+  total_entries: number;
+  this_month: number;
+  this_week: number;
+  average_mood: number;
+}
+
+interface JournalEntry {
+  id: string;
+  created_at: string;
+  mood_score: number | null;
+}
+
+interface EmotionData {
+  sentiment_score: number;
+}
+
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfileData | null>(null);
-  const [earnedAchievements, setEarnedAchievements] = useState<DisplayAchievement[]>([]);
-  const [unearnedAchievements, setUnearnedAchievements] = useState<DisplayAchievement[]>([]);
+  const [journalStats, setJournalStats] = useState<JournalStats>({ 
+    total_entries: 0, 
+    this_month: 0, 
+    this_week: 0,
+    average_mood: 0 
+  });
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [displayName, setDisplayName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'analytics'>('overview');
 
   const supabase = createClient();
   const router = useRouter();
+
+  // Function untuk menghitung mood score
+  const calculateMoodScore = async (journalEntries: JournalEntry[]) => {
+    let totalMoodScore = 0;
+    let validEntries = 0;
+
+    for (const entry of journalEntries) {
+      let moodScore = entry.mood_score;
+
+      // Jika mood_score null, ambil dari sentiment_score di tabel emotions
+      if (moodScore === null) {
+        const { data: emotions, error } = await supabase
+          .from("emotions")
+          .select("sentiment_score")
+          .eq("journal_entry_id", entry.id);
+
+        if (!error && emotions && emotions.length > 0) {
+          // Hitung rata-rata sentiment_score jika ada multiple emotions
+          const avgSentiment = emotions.reduce((sum: number, emotion: EmotionData) => 
+            sum + emotion.sentiment_score, 0) / emotions.length;
+          moodScore = avgSentiment;
+        }
+      }
+
+      // Jika berhasil mendapat mood score, tambahkan ke perhitungan
+      if (moodScore !== null && !isNaN(moodScore)) {
+        totalMoodScore += moodScore;
+        validEntries++;
+      }
+    }
+
+    return validEntries > 0 ? totalMoodScore / validEntries : 0;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,7 +98,7 @@ export default function ProfilePage() {
         const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
         
         if (userError || !currentUser) {
-          console.error("User not authenticated or error fetching user:", userError);
+          console.error("User not authenticated:", userError);
           router.push('/auth/login');
           return;
         }
@@ -79,55 +119,39 @@ export default function ProfilePage() {
           setProfile(profileData);
         }
 
-        // 1. Ambil SEMUA achievement yang tersedia
-        const { data: allAchievements, error: allAchievementsError } = await supabase
-          .from("achievements")
-          .select("id, name, description, icon_url, points_reward")
-          .order("points_reward", { ascending: true })
-          .returns<AchievementData[]>();
-
-        if (allAchievementsError) {
-          console.error("Error fetching all achievements:", allAchievementsError.message);
-          return;
-        }
-
-        // 2. Ambil achievement yang SUDAH DIRAIH user
-        const { data: userEarnedAchievementsData, error: userAchievementsError } = await supabase
-          .from("user_achievements")
-          .select("earned_at, achievement_id, achievements(id, name, description, icon_url, points_reward)")
+        // Ambil data jurnal dengan mood_score
+        const { data: journalEntries, error: journalError } = await supabase
+          .from("journal_entries")
+          .select("id, created_at, mood_score")
           .eq("user_id", currentUser.id)
-          .returns<Array<{ earned_at: string; achievement_id: string; achievements: AchievementData }>>();
+          .order("created_at", { ascending: false });
 
-        if (userAchievementsError) {
-          console.error("Error fetching user achievements:", userAchievementsError.message);
-          return;
-        }
+        if (!journalError && journalEntries) {
+          const now = new Date();
+          const currentMonth = now.getMonth();
+          const currentYear = now.getFullYear();
+          const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          
+          const thisMonthEntries = journalEntries.filter(entry => {
+            const entryDate = new Date(entry.created_at);
+            return entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear;
+          });
 
-        // 3. Gabungkan data dan pisahkan
-        const earnedList: DisplayAchievement[] = [];
-        const unearnedList: DisplayAchievement[] = [];
+          const thisWeekEntries = journalEntries.filter(entry => {
+            const entryDate = new Date(entry.created_at);
+            return entryDate >= oneWeekAgo;
+          });
 
-        if (allAchievements && allAchievements.length > 0) {
-          allAchievements.forEach(ach => {
-            const earnedVersion = userEarnedAchievementsData?.find(ua => ua.achievement_id === ach.id);
-            if (earnedVersion) {
-              earnedList.push({
-                ...ach,
-                is_earned: true,
-                earned_at: earnedVersion.earned_at,
-              });
-            } else {
-              unearnedList.push({
-                ...ach,
-                is_earned: false,
-                earned_at: null,
-              });
-            }
+          // Hitung rata-rata mood dengan fallback ke emotions table
+          const averageMood = await calculateMoodScore(thisMonthEntries);
+
+          setJournalStats({
+            total_entries: journalEntries.length,
+            this_month: thisMonthEntries.length,
+            this_week: thisWeekEntries.length,
+            average_mood: averageMood
           });
         }
-
-        setEarnedAchievements(earnedList);
-        setUnearnedAchievements(unearnedList);
 
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -143,7 +167,6 @@ export default function ProfilePage() {
   const handleDisplayNameUpdate = async (newDisplayName: string) => {
     setDisplayName(newDisplayName);
     
-    // Refresh user data to get updated metadata
     try {
       const { data } = await supabase.auth.getUser();
       if (data.user) {
@@ -154,55 +177,38 @@ export default function ProfilePage() {
     }
   };
 
-  // Helper function untuk merender kartu achievement
-  const renderAchievementCard = (achievement: DisplayAchievement) => (
-    <div
-      key={achievement.id}
-      className={`p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center relative
-                  ${achievement.is_earned ? 'bg-card' : 'bg-muted/30 opacity-70'}`}
-    >
-      {achievement.is_earned && (
-        <CheckCircle2 className="absolute top-2 right-2 h-5 w-5 text-green-500" aria-label="Sudah Diraih">
-           <title>Sudah Diraih</title>
-        </CheckCircle2>
-      )}
-      {!achievement.is_earned && (
-        <Circle className="absolute top-2 right-2 h-5 w-5 text-gray-400" aria-label="Belum Diraih">
-           <title>Belum Diraih</title>
-        </Circle>
-      )}
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error signing out:', error);
+        toast.error('Gagal keluar dari akun');
+      } else {
+        toast.success('Berhasil keluar dari akun');
+        router.push('/auth/login');
+      }
+    } catch (error) {
+      console.error('Error during sign out:', error);
+      toast.error('Terjadi kesalahan saat keluar');
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
 
-      {achievement.icon_url ? (
-        <DynamicLucideIcon
-          name={achievement.icon_url}
-          className={`w-12 h-12 mb-3 ${achievement.is_earned ? 'text-primary' : 'text-muted-foreground'}`}
-        />
-      ) : (
-        <div className={`w-12 h-12 mb-3 rounded-full flex items-center justify-center ${achievement.is_earned ? 'bg-muted' : 'bg-gray-200'}`}>
-            <Award className={`w-6 h-6 ${achievement.is_earned ? 'text-muted-foreground' : 'text-gray-400'}`} />
-        </div>
-      )}
-      <h3 className={`font-semibold text-md mb-1 ${achievement.is_earned ? 'text-foreground' : 'text-muted-foreground'}`}>{achievement.name}</h3>
-      <p className="text-xs text-muted-foreground mb-2 h-10 line-clamp-2">
-        {achievement.description}
-      </p>
-      <div className="mt-auto w-full">
-        {achievement.is_earned && achievement.earned_at && (
-            <Badge variant="secondary" className="text-xs mb-1 w-full block">
-              Diraih: {new Date(achievement.earned_at).toLocaleDateString("id-ID", {day: 'numeric', month: 'short', year: 'numeric'})}
-            </Badge>
-        )}
-        {achievement.points_reward > 0 && (
-            <span className={`text-xs font-bold block ${achievement.is_earned ? 'text-yellow-600' : 'text-gray-500'}`}>
-                +{achievement.points_reward} Poin
-            </span>
-        )}
-        {!achievement.is_earned && achievement.points_reward === 0 && (
-             <span className="text-xs text-gray-500 block italic">Milestone</span>
-        )}
-      </div>
-    </div>
-  );
+  const getMoodLabel = (score: number) => {
+    // Sesuaikan dengan skala yang digunakan di aplikasi
+    if (score >= 0.6) return { text: "Sangat Positif", color: "text-green-600" };
+    if (score >= 0.2) return { text: "Positif", color: "text-green-500" };
+    if (score >= -0.2) return { text: "Netral", color: "text-yellow-500" };
+    if (score >= -0.6) return { text: "Negatif", color: "text-orange-500" };
+    return { text: "Sangat Negatif", color: "text-red-500" };
+  };
+
+  const formatMoodScore = (score: number) => {
+    // Tampilkan nilai asli dengan 2 desimal
+    return score.toFixed(3);
+  };
 
   if (isLoading) {
     return (
@@ -215,81 +221,186 @@ export default function ProfilePage() {
     );
   }
 
-  return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-      <header className="mb-8 p-6 bg-card border rounded-lg shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-4">
-            <UserCircle className="h-16 w-16 text-primary" />
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-                  {displayName}
-                </h1>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsEditModalOpen(true)}
-                  className="h-8 w-8 p-0 hover:bg-muted"
-                  title="Edit Display Name"
-                >
-                  <Edit3 className="h-4 w-4" />
-                </Button>
-              </div>
-              <p className="text-muted-foreground">{user?.email}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-          <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
-            <Coins className="h-5 w-5 text-yellow-500" />
-            <span>Total Poin:</span>
-            <span className="font-bold text-lg">{profile?.total_points ?? 0}</span>
-          </div>
-          <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
-            <BarChart3 className="h-5 w-5 text-blue-500" />
-            <span>Streak Saat Ini:</span>
-            <span className="font-bold text-lg">{profile?.current_streak ?? 0} hari</span>
-          </div>
-        </div>
-      </header>
+  const moodInfo = getMoodLabel(journalStats.average_mood);
 
-      {/* Section untuk Achievement yang Sudah Diraih */}
-      <section className="mb-10">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-green-600">
-            <Trophy className="h-6 w-6" />
-            Lencana yang Sudah Diraih ({earnedAchievements.length})
-        </h2>
-        {earnedAchievements.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {earnedAchievements.map(renderAchievementCard)}
+  return (
+    <div className="p-4 space-y-6">
+      {/* Profile Header */}
+      <section className="bg-white rounded-lg p-6 border">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+            <UserCircle className="h-10 w-10 text-blue-600" />
           </div>
-        ) : (
-          <div className="text-center py-6 px-4 border-2 border-dashed rounded-lg border-gray-300">
-            <Trophy className="mx-auto h-10 w-10 text-muted-foreground mb-2" />
-            <p className="text-muted-foreground">Kamu belum meraih lencana penghargaan apapun.</p>
-            <p className="text-sm text-muted-foreground">Teruslah menulis jurnal untuk mendapatkannya!</p>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-gray-900">{displayName}</h1>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsEditModalOpen(true)}
+                className="h-8 w-8 p-0"
+              >
+                <Edit3 className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-sm text-gray-600">{user?.email}</p>
           </div>
-        )}
+        </div>
       </section>
 
-      {/* Section untuk Achievement yang Belum Diraih */}
+      {/* Tab Navigation */}
+      <div className="flex bg-gray-100 rounded-lg p-1">
+        <button
+          onClick={() => setActiveTab('overview')}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'overview'
+              ? 'bg-white text-blue-600 shadow-sm'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Ringkasan
+        </button>
+        <button
+          onClick={() => setActiveTab('analytics')}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'analytics'
+              ? 'bg-white text-blue-600 shadow-sm'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Analitik
+        </button>
+      </div>
+
+      {activeTab === 'overview' ? (
+        <>
+          {/* Quick Stats Grid */}
+          <section className="grid grid-cols-2 gap-4">
+            <div className="bg-white rounded-lg p-4 border text-center">
+              <TrendingUp className="h-6 w-6 text-orange-500 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-gray-900">{profile?.current_streak || 0}</div>
+              <div className="text-xs text-gray-500">Hari Berturut</div>
+            </div>
+            
+            <div className="bg-white rounded-lg p-4 border text-center">
+              <BookOpen className="h-6 w-6 text-blue-500 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-gray-900">{journalStats.total_entries}</div>
+              <div className="text-xs text-gray-500">Total Jurnal</div>
+            </div>
+
+            <div className="bg-white rounded-lg p-4 border text-center">
+              <Calendar className="h-6 w-6 text-purple-500 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-gray-900">{journalStats.this_week}</div>
+              <div className="text-xs text-gray-500">Minggu Ini</div>
+            </div>
+
+            <div className="bg-white rounded-lg p-4 border text-center">
+              <Smile className="h-6 w-6 text-green-500 mx-auto mb-2" />
+              <div className={`text-lg font-bold ${moodInfo.color}`}>
+                {formatMoodScore(journalStats.average_mood)}
+              </div>
+              <div className="text-xs text-gray-500">Rata-rata Mood</div>
+            </div>
+          </section>
+
+          {/* Monthly Progress */}
+          <section className="bg-white rounded-lg p-4 border">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-blue-500" />
+              Progress Bulan Ini
+            </h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Jurnal ditulis</span>
+                <span className="font-medium">{journalStats.this_month} entri</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Poin terkumpul</span>
+                <span className="font-medium">{profile?.total_points || 0} poin</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Mood rata-rata</span>
+                <div className="flex flex-col items-end">
+                  <span className={`font-medium ${moodInfo.color}`}>
+                    {moodInfo.text}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    ({formatMoodScore(journalStats.average_mood)})
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Quick Navigation */}
+          <section>
+            <h2 className="text-lg font-semibold mb-3 text-gray-900">Navigasi Cepat</h2>
+            <div className="space-y-3">
+              <Button asChild variant="outline" className="w-full h-14 justify-start">
+                <Link href="/protected/journal/history" className="flex items-center gap-3">
+                  <Calendar className="h-5 w-5 text-blue-500" />
+                  <div className="text-left">
+                    <div className="font-medium">Riwayat Jurnal</div>
+                    <div className="text-sm text-gray-500">{journalStats.this_month} entri bulan ini</div>
+                  </div>
+                </Link>
+              </Button>
+              
+              <Button asChild variant="outline" className="w-full h-14 justify-start">
+                <Link href="/protected/garden" className="flex items-center gap-3">
+                  <Flower2 className="h-5 w-5 text-green-500" />
+                  <div className="text-left">
+                    <div className="font-medium">Taman Pencapaian</div>
+                    <div className="text-sm text-gray-500">{profile?.total_points || 0} poin terkumpul</div>
+                  </div>
+                </Link>
+              </Button>
+            </div>
+          </section>
+        </>
+      ) : (
+        /* Analytics Tab */
+        <div className="space-y-6">
+          {/* Mood Trend Chart */}
+          <MoodTrendChart />
+          
+          {/* Emotion Composition */}
+          <EmotionCompositionPie />
+          
+          {/* Word Cloud */}
+          <JournalWordCloud />
+          
+          {/* Mood Air Correlation */}
+          <MoodAirCorrelationChart />
+        </div>
+      )}
+
+      {/* Settings & Actions */}
       <section>
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-blue-600">
-            <Target className="h-6 w-6" />
-            Target Lencana Berikutnya ({unearnedAchievements.length})
-        </h2>
-        {unearnedAchievements.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {unearnedAchievements.map(renderAchievementCard)}
-          </div>
-        ) : (
-          <div className="text-center py-6 px-4 border-2 border-dashed rounded-lg border-gray-300">
-            <Target className="mx-auto h-10 w-10 text-muted-foreground mb-2" />
-            <p className="text-muted-foreground">Selamat! Kamu telah meraih semua lencana yang tersedia!</p>
-          </div>
-        )}
+        <h2 className="text-lg font-semibold mb-3 text-gray-900">Pengaturan</h2>
+        <div className="space-y-3">
+          {/* Future: Settings page */}
+          <Button variant="outline" className="w-full h-12 justify-start" disabled>
+            <Settings className="h-5 w-5 mr-3 text-gray-400" />
+            <span className="text-gray-400">Pengaturan (Segera Hadir)</span>
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            className="w-full h-12 justify-start text-red-600 border-red-200 hover:bg-red-50"
+            onClick={handleSignOut}
+            disabled={isSigningOut}
+          >
+            <LogOut className="h-5 w-5 mr-3" />
+            {isSigningOut ? 'Keluar...' : 'Keluar dari Akun'}
+          </Button>
+        </div>
+      </section>
+
+      {/* App Info */}
+      <section className="text-center py-4 text-sm text-gray-500">
+        <p>Eco Journal v1.0</p>
+        <p>Aplikasi jurnal untuk kesehatan mental</p>
       </section>
 
       {/* Edit Display Name Modal */}
