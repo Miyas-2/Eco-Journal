@@ -341,7 +341,7 @@ export default async function HomePage() {
               "Setiap hari adalah kesempatan baru untuk tumbuh dan merefleksikan diri."
             </blockquote>
             <cite className="text-xs text-organic-caption font-medium">
-              — Eco Journal
+              — Atmosfeel
             </cite>
           </div>
         </section>

@@ -208,7 +208,7 @@ export default async function GardenPage() {
           </div>
           
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-            {unearnedAchievements.map((achievement) => (
+            {unearnedAchievements.slice(0, 4).map((achievement) => (
               <div key={achievement.id} className="card-organic rounded-3xl p-6 bg-gradient-to-br from-stone-50/50 to-white/80 border border-stone-200/30 text-center group hover:shadow-lg hover:border-emerald-200/50 transition-all duration-300">
             <div className="w-16 h-16 bg-gradient-to-br from-stone-100 to-stone-200 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:shadow-md transition-all duration-300">
               <Trophy className="h-8 w-8 text-stone-400 group-hover:text-stone-500 transition-colors duration-300" />

@@ -34,7 +34,7 @@ export default function MoodTrendChart() {
       </div>
       {loading ? (
         <div className="flex items-center justify-center h-32 sm:h-40 text-muted-foreground">
-          <Loader2 className="animate-spin mr-2 w-4 h-4" />
+          <Loader2 className="animate-spin mr-2 w-4 h-4" /> 
           <span className="text-sm">Memuat grafik...</span>
         </div>
       ) : data.length === 0 ? (
@@ -43,35 +43,34 @@ export default function MoodTrendChart() {
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={250}>
-          <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+          <LineChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="date"
-              fontSize={10}
+            <XAxis 
+              dataKey="date" 
+              fontSize={10} 
               tick={{ fontSize: 10 }}
               interval="preserveStartEnd"
             />
-            <YAxis
-              domain={[-1, 1]}
-              ticks={[-1, -0.5, 0, 0.5, 1]}
+            <YAxis 
+              domain={[-1, 1]} 
+              ticks={[-1, -0.5, 0, 0.5, 1]} 
               fontSize={10}
               tick={{ fontSize: 10 }}
             />
-            <Tooltip
+            <Tooltip 
               formatter={(v: number) => v.toFixed(2)}
               contentStyle={{ fontSize: '12px' }}
             />
             <ReferenceLine y={0} stroke="#888" strokeDasharray="3 3" />
-            <Line
-              type="monotone"
-              dataKey="avgMood"
-              stroke="#22c55e"
-              strokeWidth={2}
+            <Line 
+              type="monotone" 
+              dataKey="avgMood" 
+              stroke="#22c55e" 
+              strokeWidth={2} 
               dot={{ r: 3 }}
             />
           </LineChart>
         </ResponsiveContainer>
-
       )}
       <div className="text-xs text-muted-foreground mt-2 text-center sm:text-left">
         -1: Negatif, 0: Netral, +1: Positif

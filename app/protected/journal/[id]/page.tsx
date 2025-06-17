@@ -379,7 +379,7 @@ export default async function JournalDetailPage({ params }: { params: { id: stri
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
                   {Object.entries(emotionAnalysisData.all_predictions)
                     .sort(([, a], [, b]) => b - a)
-                    .slice(0, 6) // Limit to 6 items on mobile
+                    .slice(0, 8) // Limit to 6 items on mobile
                     .map(([key, value]) => (
                       <div key={key} className="bg-gradient-to-r from-stone-50 to-white rounded-lg md:rounded-xl p-2 md:p-3 border border-stone-200/50 text-center">
                         <div className="font-medium text-xs md:text-sm text-stone-700 capitalize mb-1">

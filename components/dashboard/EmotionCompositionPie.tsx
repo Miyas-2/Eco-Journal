@@ -91,7 +91,7 @@ export default function EmotionCompositionPie() {
                 `${value}%`,
                 "Persentase",
               ]}
-              labelFormatter={(label) => `Emosi: ${label}`}
+                labelFormatter={(label) => `Emosi: ${label}`}
             />
             <Legend 
               wrapperStyle={{ fontSize: window.innerWidth >= 640 ? '14px' : '12px' }}

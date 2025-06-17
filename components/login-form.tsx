@@ -49,62 +49,92 @@ export function LoginForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin}>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <Link
-                    href="/auth/forgot-password"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Login"}
-              </Button>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
+      <div className="card-organic">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold font-organik text-organic-title mb-2">
+            Selamat Datang! 🌱
+          </h1>
+          <p className="text-organic-secondary">
+            Masuk ke akun Eco Journal Anda untuk melanjutkan perjalanan ramah lingkungan
+          </p>
+        </div>
+        
+        <form onSubmit={handleLogin} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-organic-title font-medium">
+              Email
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="contoh@email.com"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="input-organic"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password" className="text-organic-title font-medium">
+                Password
+              </Label>
               <Link
-                href="/auth/sign-up"
-                className="underline underline-offset-4"
+                href="/auth/forgot-password"
+                className="text-sm text-organic-secondary hover:text-organic-accent transition-colors"
               >
-                Sign up
+                Lupa password?
               </Link>
             </div>
-          </form>
-        </CardContent>
-      </Card>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Masukkan password Anda"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="input-organic"
+            />
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+              <p className="text-sm text-red-600 flex items-center gap-2">
+                <span>⚠️</span>
+                {error}
+              </p>
+            </div>
+          )}
+
+          <Button 
+            type="submit" 
+            className="button-organic w-full" 
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Masuk...
+              </span>
+            ) : (
+              "Masuk 🌿"
+            )}
+          </Button>
+
+          <div className="text-center">
+            <p className="text-organic-secondary">
+              Belum punya akun?{" "}
+              <Link
+                href="/auth/sign-up"
+                className="text-organic-accent hover:text-organic-primary font-medium transition-colors"
+              >
+                Daftar di sini
+              </Link>
+            </p>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

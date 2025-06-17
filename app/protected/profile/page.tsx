@@ -299,7 +299,7 @@ export default function ProfilePage() {
                 <div className="flex flex-wrap justify-center sm:justify-start gap-4 mt-4 text-sm">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-emerald-200 rounded-full"></div>
-                    <span className="text-emerald-100">Eco Journalist</span>
+                    <span className="text-emerald-100">Journalist</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-teal-200 rounded-full"></div>
@@ -570,7 +570,7 @@ export default function ProfilePage() {
             <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-200/40 float-organic">
               <span className="text-white text-lg font-bold">🌱</span>
             </div>
-            <h3 className="text-lg font-bold text-organic-title mb-2">Eco Journal v1.0</h3>
+            <h3 className="text-lg font-bold text-organic-title mb-2">Atmosfeel v1.0</h3>
             <p className="text-organic-body mb-4">Aplikasi jurnal untuk kesehatan mental dan lingkungan</p>
             <div className="flex flex-wrap justify-center gap-4 text-sm text-organic-caption">
               <div className="flex items-center gap-2">

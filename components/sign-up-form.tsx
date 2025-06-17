@@ -3,13 +3,6 @@
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
@@ -67,77 +60,102 @@ export function SignUpForm({
       setIsLoading(false);
     }
   };
-
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Sign up</CardTitle>
-          <CardDescription>Create a new account</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignUp}>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  type="text"
-                  placeholder="Your username"
-                  required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="repeat-password">Repeat Password</Label>
-                </div>
-                <Input
-                  id="repeat-password"
-                  type="password"
-                  required
-                  value={repeatPassword}
-                  onChange={(e) => setRepeatPassword(e.target.value)}
-                />
-              </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating an account..." : "Sign up"}
-              </Button>
+      <div className="card-organic">
+        <div className="space-y-2 mb-6">
+          <h2 className="text-2xl font-semibold text-organic-title">Sign up</h2>
+          <p className="text-organic-subtitle">Create a new account to start your eco journey</p>
+        </div>
+        
+        <form onSubmit={handleSignUp} className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="username" className="text-organic-title font-medium">
+              Username
+            </Label>
+            <Input
+              id="username"
+              type="text"
+              placeholder="Your username"
+              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="input-organic"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-organic-title font-medium">
+              Email
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="m@example.com"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="input-organic"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-organic-title font-medium">
+              Password
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Create a secure password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="input-organic"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="repeat-password" className="text-organic-title font-medium">
+              Repeat Password
+            </Label>
+            <Input
+              id="repeat-password"
+              type="password"
+              placeholder="Confirm your password"
+              required
+              value={repeatPassword}
+              onChange={(e) => setRepeatPassword(e.target.value)}
+              className="input-organic"
+            />
+          </div>
+          
+          {error && (
+            <div className="p-3 rounded-2xl bg-red-50 border border-red-200">
+              <p className="text-sm text-red-600">{error}</p>
             </div>
-            <div className="mt-4 text-center text-sm">
-              Already have an account?{" "}
-              <Link href="/auth/login" className="underline underline-offset-4">
-                Login
-              </Link>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+          )}
+          
+          <Button 
+            type="submit" 
+            className="button-organic w-full" 
+            disabled={isLoading}
+          >
+            {isLoading ? "Creating an account..." : "Sign up"}
+          </Button>
+        </form>
+        
+        <div className="mt-6 text-center">
+          <p className="text-sm text-organic-subtitle">
+            Already have an account?{" "}
+            <Link 
+              href="/auth/login" 
+              className="text-organic-primary hover:text-organic-primary/80 transition-colors font-medium underline-offset-4 hover:underline"
+            >
+              Login
+            </Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

@@ -236,7 +236,7 @@ export default function JournalHistoryPage() {
               <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-xl flex items-center justify-center">
                 <BookOpen className="h-4 w-4 text-white" />
               </div>
-              <span className="font-semibold text-sm">Eco Journal</span>
+              <span className="font-semibold text-sm">Atmosfeel</span>
             </div>
           </div>
         </div>

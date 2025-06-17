@@ -29,7 +29,7 @@ export default async function ProtectedLayout({
                 <span className="text-white text-sm font-semibold">🌿</span>
               </div>
               <h1 className="text-xl font-semibold text-stone-700 tracking-wide">
-                Eco Journal
+                Atmosfeel
               </h1>
             </div>
 
