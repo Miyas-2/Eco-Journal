@@ -90,3 +90,82 @@ export interface JournalEntry { // Contoh jika Anda membuat tipe ini
   emotion_id: number | null;
   emotion_source: 'ai' | 'manual' | null;
 }
+
+// ...existing code...
+
+export interface AirQualityData {
+  location: {
+    lat: number;
+    lon: number;
+    name: string;
+  };
+  timestamp: string;
+  airQuality: {
+    aqi: number;  // US-EPA Index
+    co: number;
+    no2: number;
+    o3: number;
+    so2: number;
+    pm2_5: number;
+    pm10: number;
+  };
+}
+
+export interface AirQualityHeatmapData {
+  data: AirQualityData[];
+  timeRange: 'today' | '7days' | '30days';
+  aggregationType: 'hourly' | 'daily' | 'weekly';
+}
+
+// Color ranges for different AQI levels
+export enum AqiLevel {
+  GOOD = 'good',
+  MODERATE = 'moderate',
+  UNHEALTHY_SENSITIVE = 'unhealthy-sensitive',
+  UNHEALTHY = 'unhealthy',
+  VERY_UNHEALTHY = 'very-unhealthy',
+  HAZARDOUS = 'hazardous'
+}
+
+export interface AqiColorMapping {
+  level: AqiLevel;
+  color: string;
+  range: [number, number];
+  description: string;
+}
+
+// Tambahkan ke file types/index.ts
+export interface EmotionHeatmapData {
+  location: {
+    lat: number;
+    lon: number;
+  };
+  intensity: number;
+  dominantEmotion: string;
+  emotionCounts: Record<string, number>;
+  entryCount: number;
+  timestamp?: string;
+  source: 'journal';
+  moodScore?: number; // Tambahkan properti moodScore sebagai opsional
+  averageMoodScore?: number; // Tambahkan juga averageMoodScore untuk data yang dirata-rata
+}
+
+// Update AirQualityData untuk menambahkan source
+export interface AirQualityData {
+  location: {
+    lat: number;
+    lon: number;
+    name: string;
+  };
+  timestamp: string;
+  airQuality: {
+    aqi: number;
+    co: number;
+    no2: number;
+    o3: number;
+    so2: number;
+    pm2_5: number;
+    pm10: number;
+  };
+  source: 'api';
+}

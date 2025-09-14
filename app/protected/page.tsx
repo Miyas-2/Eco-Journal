@@ -1,11 +1,19 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { Metadata } from 'next';
+import AirQualityHeatmap from '@/components/dashboard/AirQualityHeatmap';
 import { Calendar, TrendingUp, Award, Clock, BookOpen, Sparkles, Heart, LucideProps } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import DashboardNotifications from "@/components/dashboard/DashboardNotifications";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
+import PublicAirQualityMap from "@/components/home/PublicAirQualityMap";
+
+export const metadata: Metadata = {
+  title: 'Air Quality Heatmap | Eco Journal',
+  description: 'View real-time and historical air quality data on an interactive map',
+};
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -38,7 +46,7 @@ export default async function HomePage() {
   // Ambil achievements yang baru diraih (7 hari terakhir)
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  
+
   const { data: recentAchievements } = await supabase
     .from("user_achievements")
     .select("*, achievements(name, description, points_reward)")
@@ -82,7 +90,7 @@ export default async function HomePage() {
         id: `journal-${journal.id}`,
         type: 'journal',
         title: journal.title || 'Jurnal Tanpa Judul',
-        subtitle: emotionDisplay 
+        subtitle: emotionDisplay
           ? `Emosi: ${emotionDisplay.emotion} (${emotionDisplay.source})`
           : 'Menulis jurnal',
         time: journal.created_at,
@@ -123,7 +131,7 @@ export default async function HomePage() {
     const now = new Date();
     const date = new Date(dateString);
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) {
       const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
       return diffInMinutes < 1 ? 'Baru saja' : `${diffInMinutes} menit lalu`;
@@ -138,7 +146,7 @@ export default async function HomePage() {
   return (
     <>
       <DashboardNotifications />
-      
+
       <div className="p-4 space-y-6">
         {/* Welcome Section */}
         <section className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white">
@@ -160,13 +168,13 @@ export default async function HomePage() {
             <div className="text-2xl font-bold text-gray-900">{journalCount?.length || 0}</div>
             <div className="text-xs text-gray-500">Jurnal</div>
           </div>
-          
+
           <div className="bg-white rounded-lg p-4 text-center border">
             <TrendingUp className="h-6 w-6 text-green-500 mx-auto mb-2" />
             <div className="text-2xl font-bold text-gray-900">{profile?.current_streak || 0}</div>
             <div className="text-xs text-gray-500">Hari Berturut</div>
           </div>
-          
+
           <div className="bg-white rounded-lg p-4 text-center border">
             <Award className="h-6 w-6 text-yellow-500 mx-auto mb-2" />
             <div className="text-2xl font-bold text-gray-900">{profile?.total_points || 0}</div>
@@ -201,13 +209,13 @@ export default async function HomePage() {
               {recentActivities.map((activity) => {
                 const ActivityIcon = activity.icon;
                 const EmotionIcon = activity.emotionDisplay?.icon;
-                
+
                 return (
                   <div key={activity.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activity.bgColor}`}>
                       <ActivityIcon className={`h-5 w-5 ${activity.color}`} />
                     </div>
-                    
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <p className="font-medium text-gray-900 truncate">
@@ -249,7 +257,7 @@ export default async function HomePage() {
               <span className="text-sm">Lihat Riwayat</span>
             </Link>
           </Button>
-          
+
           <Button asChild variant="outline" className="h-16">
             <Link href="/protected/garden" className="flex flex-col items-center">
               <Award className="h-5 w-5 mb-1" />
@@ -257,6 +265,20 @@ export default async function HomePage() {
             </Link>
           </Button>
         </section>
+
+        {/* <section className="grid grid-cols-2 gap-4">
+          <div className="container mx-auto px-4 py-8">
+            <h1 className="text-2xl font-bold mb-6">Air Quality Monitoring</h1>
+            <p className="mb-6">
+              Explore air quality patterns in different locations over time. The heatmap
+              displays data collected from your journal entries, helping you understand
+              how air quality affects your daily life.
+            </p>
+            <div className="space-y-8">
+              <PublicAirQualityMap />
+            </div>
+          </div>
+        </section> */}
       </div>
     </>
   );

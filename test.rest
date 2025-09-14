@@ -1,0 +1,1 @@
+http://api.weatherstack.com/current?access_key=c3ffb0a94bb3a1c19ad8a534e06edb0a&query=Ciwaruga
