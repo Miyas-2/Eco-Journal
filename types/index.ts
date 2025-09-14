@@ -90,3 +90,4 @@ export interface JournalEntry { // Contoh jika Anda membuat tipe ini
   emotion_id: number | null;
   emotion_source: 'ai' | 'manual' | null;
 }
+
