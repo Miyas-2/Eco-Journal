@@ -98,12 +98,12 @@ export default function DevToolsNavigation({ user }: DevToolsNavigationProps) {
             <div className="flex items-center gap-3 mb-2">
               <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center border border-slate-200">
                 <span className="text-sm font-bold text-slate-700">
-                  EJ
+                  AF
                 </span>
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-slate-800">Eco Journal</h2>
-                <p className="text-xs text-slate-500">DevTools Panel</p>
+                <h2 className="text-lg font-semibold text-slate-800">AtmosFeel</h2>
+                <p className="text-xs text-slate-500">Navigation Panel</p>
               </div>
             </div>
           </div>

@@ -11,7 +11,7 @@ import { ForwardRefExoticComponent, RefAttributes } from "react";
 import PublicAirQualityMap from "@/components/home/PublicAirQualityMap";
 
 export const metadata: Metadata = {
-  title: 'Dashboard | Eco Journal',
+  title: 'Dashboard | AtmosFeel',
   description: 'Your personal wellness and journaling dashboard',
 };
 
