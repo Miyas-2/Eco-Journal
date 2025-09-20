@@ -399,7 +399,7 @@ export default function ProfilePage() {
 
       {/* App Info */}
       <section className="text-center py-4 text-sm text-gray-500">
-        <p>Eco Journal v1.0</p>
+        <p>Atmosfeel v1.0</p>
         <p>Aplikasi jurnal untuk kesehatan mental</p>
       </section>
 

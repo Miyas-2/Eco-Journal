@@ -7,13 +7,12 @@ import { Label } from '@/components/ui/label';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, InfoIcon as Info, AlertCircle, Sparkles, Save, Lightbulb, XCircle } from 'lucide-react'; // Tambahkan Lightbulb, XCircle
+import { Loader2, InfoIcon as Info, AlertCircle, Sparkles, Save, Lightbulb, XCircle, Brain, Target } from 'lucide-react';
 import { WeatherApiResponse, EmotionApiResponse, UserLocation } from '@/types';
 import WeatherDisplay from '@/components/dashboard/weather-display';
 import { Input } from '../ui/input';
 import { simpleMarkdownToHtml } from "@/lib/utils";
-import toast from 'react-hot-toast'; // Pastikan sudah diimport jika belum
-import { Award } from 'lucide-react'; // Untuk toast
+import toast from 'react-hot-toast';
 
 interface JournalFormProps {
   userId: string;
@@ -33,8 +32,6 @@ interface GamificationResponse {
   error?: string;
 }
 
-
-
 export default function JournalForm({ userId }: JournalFormProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -48,10 +45,12 @@ export default function JournalForm({ userId }: JournalFormProps) {
   const [weatherData, setWeatherData] = useState<WeatherApiResponse | null>(null);
   const [emotionData, setEmotionData] = useState<EmotionApiResponse | null>(null);
 
-  // State baru untuk fitur inspirasi LLM
   const [isFetchingSuggestion, setIsFetchingSuggestion] = useState(false);
   const [llmSuggestion, setLlmSuggestion] = useState<string | null>(null);
   const [llmError, setLlmError] = useState<string | null>(null);
+
+  // UI state
+  const [showEmotionSidebar, setShowEmotionSidebar] = useState(false);
 
   type EmotionSource = 'ai' | 'manual';
   type Emotion = { id: number; name: string; sentiment_score: number | null };
@@ -59,15 +58,13 @@ export default function JournalForm({ userId }: JournalFormProps) {
   const [emotionSource, setEmotionSource] = useState<EmotionSource>('ai');
   const [emotions, setEmotions] = useState<Emotion[]>([]);
   const [selectedEmotionId, setSelectedEmotionId] = useState<number | null>(null);
-
   const [emotionsMap, setEmotionsMap] = useState<Map<string, number | null>>(new Map());
-
 
   const supabase = createClient();
   const router = useRouter();
 
+  // Keep all existing functions...
   const getEmotionIdFromDb = async (emotionName?: string): Promise<number | null> => {
-    // ... existing code ...
     if (!emotionName) return null;
     const normalizedEmotionName = emotionName.charAt(0).toUpperCase() + emotionName.slice(1).toLowerCase();
 
@@ -79,7 +76,7 @@ export default function JournalForm({ userId }: JournalFormProps) {
 
     if (dbError) {
       console.error(`Error fetching emotion id for "${normalizedEmotionName}":`, dbError);
-      setError(`Emosi "${normalizedEmotionName}" tidak ditemukan di database. Pastikan tabel 'emotions' terisi dengan benar dan nama emosi dari API (${emotionName}) cocok setelah normalisasi.`);
+      setError(`Emosi "${normalizedEmotionName}" tidak ditemukan di database.`);
       return null;
     }
     return data?.id || null;
@@ -87,12 +84,10 @@ export default function JournalForm({ userId }: JournalFormProps) {
 
   useEffect(() => {
     const fetchInitialWeather = async () => {
-      // ... existing code ...
       if (weatherData || userLocation) return;
 
       setIsFetchingWeather(true);
       setError(null);
-      setInfoMessage("Mendeteksi lokasi dan cuaca Anda...");
 
       if (navigator.geolocation) {
         try {
@@ -121,15 +116,9 @@ export default function JournalForm({ userId }: JournalFormProps) {
             ...prevLoc!,
             name: fetchedWeatherData.location.name,
           }));
-          setInfoMessage("Data cuaca berhasil dimuat.");
         } catch (err: any) {
           console.error("Error fetching initial weather:", err);
-          setError(err.message || "Tidak dapat mengambil data lokasi atau cuaca awal.");
-          setInfoMessage(null);
         }
-      } else {
-        setError("Browser Anda tidak mendukung geolocation atau izin lokasi ditolak.");
-        setInfoMessage(null);
       }
       setIsFetchingWeather(false);
     };
@@ -137,10 +126,9 @@ export default function JournalForm({ userId }: JournalFormProps) {
     fetchInitialWeather();
 
     const fetchEmotions = async () => {
-      // Pastikan memilih kolom sentiment_score (atau nama kolom valence Anda)
       const { data, error: fetchError } = await supabase
         .from('emotions')
-        .select('id, name, sentiment_score'); // Ganti 'sentiment_score' jika nama kolom Anda berbeda
+        .select('id, name, sentiment_score');
 
       if (fetchError) {
         console.error("Error fetching emotions:", fetchError);
@@ -149,9 +137,8 @@ export default function JournalForm({ userId }: JournalFormProps) {
         setEmotions(data as Emotion[]);
         const newMap = new Map<string, number | null>();
         data.forEach(emotion => {
-          if (emotion.name) { // Pastikan nama emosi ada
+          if (emotion.name) {
             const normalizedName = emotion.name.charAt(0).toUpperCase() + emotion.name.slice(1).toLowerCase();
-            // Simpan sentiment_score, pastikan itu angka atau null jika memang bisa null di DB
             newMap.set(normalizedName, (typeof emotion.sentiment_score === 'number') ? emotion.sentiment_score : null);
           }
         });
@@ -162,7 +149,6 @@ export default function JournalForm({ userId }: JournalFormProps) {
   }, []);
 
   const handleAnalyzeEmotion = async () => {
-    // ... existing code ...
     if (!content.trim()) {
       setError("Konten jurnal tidak boleh kosong untuk dianalisis.");
       return;
@@ -170,7 +156,6 @@ export default function JournalForm({ userId }: JournalFormProps) {
     setIsAnalyzingEmotion(true);
     setError(null);
     setEmotionData(null);
-    setInfoMessage("Menganalisis emosi...");
 
     try {
       const emotionResponse = await fetch('/api/emotion', {
@@ -184,17 +169,16 @@ export default function JournalForm({ userId }: JournalFormProps) {
       }
       const fetchedEmotionData: EmotionApiResponse = await emotionResponse.json();
       setEmotionData(fetchedEmotionData);
-      setInfoMessage("Analisis emosi selesai.");
+      setShowEmotionSidebar(true);
     } catch (err: any) {
       console.error("Error during emotion analysis:", err);
       setError(err.message || "Terjadi kesalahan saat analisis emosi.");
-      setInfoMessage(null);
     } finally {
       setIsAnalyzingEmotion(false);
     }
   };
 
-const handleSaveJournal = async () => {
+  const handleSaveJournal = async () => {
     if (!title.trim()) {
       setError("Judul jurnal tidak boleh kosong.");
       return;
@@ -217,21 +201,20 @@ const handleSaveJournal = async () => {
     setInfoMessage("Menyimpan jurnal...");
 
     try {
-      let aiEmotionId: number | null = null; // Untuk kolom 'emotion_id'
+      let aiEmotionId: number | null = null;
       let calculatedMoodScore: number | null = null;
 
       if (emotionSource === 'ai' && emotionData) {
         const topEmotionLabel = emotionData.top_prediction?.label;
         if (topEmotionLabel) {
           aiEmotionId = await getEmotionIdFromDb(topEmotionLabel);
-          if (!aiEmotionId) { // Error sudah di-set oleh getEmotionIdFromDb
+          if (!aiEmotionId) {
             setIsSaving(false);
             setInfoMessage(null);
             return;
           }
         }
 
-        // Hitung mood_score berdasarkan all_predictions (sesuai contoh Anda)
         let sumOfProducts = 0;
         let foundAnyValenceForAI = false;
         if (emotionData.all_predictions) {
@@ -242,8 +225,6 @@ const handleSaveJournal = async () => {
             if (typeof valence === 'number' && typeof confidenceFromAI === 'number') {
               sumOfProducts += valence * confidenceFromAI;
               foundAnyValenceForAI = true;
-            } else {
-              console.warn(`Valence untuk emosi AI "${normalizedEmotionName}" tidak ditemukan di DB atau confidence tidak valid. Dilewati.`);
             }
           }
         }
@@ -251,9 +232,7 @@ const handleSaveJournal = async () => {
         if (foundAnyValenceForAI) {
           calculatedMoodScore = sumOfProducts / 100;
         } else {
-          // Jika tidak ada valence yang cocok, mood_score bisa null atau 0, tergantung kebijakan Anda
           calculatedMoodScore = null;
-          console.warn("Tidak ada valence yang cocok ditemukan untuk emosi dari AI, mood_score di-set ke null.");
         }
 
       } else if (emotionSource === 'manual' && selectedEmotionId) {
@@ -268,7 +247,6 @@ const handleSaveJournal = async () => {
         }
       }
 
-      // Simpan jurnal ke database
       const journalEntryData = {
         user_id: userId,
         title,
@@ -280,7 +258,7 @@ const handleSaveJournal = async () => {
         latitude: userLocation?.latitude,
         longitude: userLocation?.longitude,
         location_name: userLocation?.name || weatherData?.location.name,
-        mood_score: calculatedMoodScore, // Tambahkan mood_score yang sudah dihitung
+        mood_score: calculatedMoodScore,
       };
 
       const { error: insertError } = await supabase
@@ -292,7 +270,6 @@ const handleSaveJournal = async () => {
         throw new Error(`Gagal menyimpan jurnal: ${insertError.message}`);
       }
 
-      // Panggil API Gamifikasi
       try {
         const gamificationResponse = await fetch("/api/gamification/update-on-entry", {
           method: "POST",
@@ -300,8 +277,6 @@ const handleSaveJournal = async () => {
           body: JSON.stringify({
             userId,
             journalDate: new Date().toISOString().split('T')[0],
-            // Anda bisa mengirim mood_score ke API gamifikasi jika diperlukan di sana
-            // moodScore: calculatedMoodScore
           }),
         });
 
@@ -311,14 +286,11 @@ const handleSaveJournal = async () => {
           if (gamificationData.newlyAwardedAchievements && gamificationData.newlyAwardedAchievements.length > 0) {
             sessionStorage.setItem('newlyAwardedAchievements', JSON.stringify(gamificationData.newlyAwardedAchievements));
           }
-        } else {
-          console.warn("Panggilan API Gamifikasi mungkin gagal atau tidak ada achievement baru:", gamificationData.error || "Tidak ada error spesifik");
         }
       } catch (gamifError: any) {
         console.error("Error memanggil API gamifikasi:", gamifError);
       }
 
-      // Reset form
       setTitle('');
       setContent('');
       setEmotionData(null);
@@ -337,7 +309,6 @@ const handleSaveJournal = async () => {
     }
   };
 
-  // Fungsi baru untuk mendapatkan inspirasi dari LLM
   const handleGetInspiration = async () => {
     if (!content.trim()) {
       setLlmError("Tuliskan sesuatu di jurnalmu terlebih dahulu untuk mendapatkan inspirasi.");
@@ -350,11 +321,7 @@ const handleSaveJournal = async () => {
 
     let weatherDesc = "";
     if (weatherData) {
-      weatherDesc += `Cuaca: ${weatherData.current.condition.text}, suhu ${weatherData.current.temp_c}°C, kelembapan ${weatherData.current.humidity}%, tekanan udara ${weatherData.current.pressure_mb} mb, kecepatan angin ${weatherData.current.wind_kph} km/jam. `;
-      if (weatherData.current.air_quality) {
-        const aq = weatherData.current.air_quality;
-        weatherDesc += `Kualitas udara: PM2.5 ${aq.pm2_5?.toFixed(1) ?? '-'} µg/m³, PM10 ${aq.pm10?.toFixed(1) ?? '-'} µg/m³, CO ${aq.co?.toFixed(1) ?? '-'} µg/m³, NO₂ ${aq.no2?.toFixed(1) ?? '-'} µg/m³, O₃ ${aq.o3?.toFixed(1) ?? '-'} µg/m³, SO₂ ${aq.so2?.toFixed(1) ?? '-'} µg/m³. `;
-      }
+      weatherDesc += `Cuaca: ${weatherData.current.condition.text}, suhu ${weatherData.current.temp_c}°C`;
     }
 
     const llmPrompt = `
@@ -380,211 +347,350 @@ Tolong berikan 2 pertanyaan reflektif yang sederhana dan hangat, agar saya bisa 
     }
   };
 
-
   const isLoading = isFetchingWeather || isAnalyzingEmotion || isSaving || isFetchingSuggestion;
 
   return (
-    <div className="space-y-6">
-      {/* ... Tampilan Cuaca ... */}
-      <div className="p-4 border rounded-md bg-muted/20">
-        <h3 className="text-lg font-semibold mb-2">Kondisi Lingkungan Saat Jurnal Dibuat</h3>
-        {isFetchingWeather && <div className="flex items-center text-sm"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Memuat data cuaca...</div>}
-        {weatherData && userLocation && !isFetchingWeather && <WeatherDisplay weather={weatherData} locationName={userLocation.name} />}
-        {!weatherData && !isFetchingWeather && <p className="text-sm text-muted-foreground">Data cuaca tidak tersedia atau gagal dimuat.</p>}
-      </div>
-
-      <div>
-        <Label htmlFor="journal-title" className="text-base font-medium">
-          Judul Jurnal
-        </Label>
-        <Input
-          id="journal-title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Berikan judul untuk entri jurnalmu..."
-          className="mt-1 text-base"
-          disabled={isLoading}
-        />
-      </div>
-
-      <div>
-        <div className="flex justify-between items-center">
-          <Label htmlFor="journal-content" className="text-base font-medium">
-            Apa yang kamu rasakan atau pikirkan hari ini?
-          </Label>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleGetInspiration}
-            disabled={isLoading || !content.trim()}
-            className="text-xs text-primary hover:bg-primary/10 px-2 py-1"
-          >
-            {isFetchingSuggestion ? (
-              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Lightbulb className="mr-1.5 h-3.5 w-3.5" />
+    <div className="min-h-screen bg-slate-50">
+      <div className="max-w-6xl mx-auto">
+        {/* Minimal Header with Weather & AQI */}
+        <div className="mx-8 mt-6 px-6 py-4 border border-slate-200 bg-white rounded-3xl shadow-sm relative">
+          <div className="flex items-center justify-between">
+            {/* Weather Display - Minimal Mode */}
+            {weatherData && (
+              <WeatherDisplay 
+                weather={weatherData} 
+                locationName={userLocation?.name}
+                isMinimal={true}
+              />
             )}
-            Dapatkan Inspirasi
-          </Button>
-        </div>
-        <Textarea
-          id="journal-content"
-          value={content}
-          onChange={(e) => {
-            setContent(e.target.value);
-            // Otomatis hapus saran LLM jika pengguna mulai mengetik lagi
-            // if (llmSuggestion || llmError) {
-            //   setLlmSuggestion(null);
-            //   setLlmError(null);
-            // }
-          }}
-          placeholder="Tuliskan jurnalmu di sini..."
-          rows={8}
-          className="mt-1 text-base"
-          disabled={isLoading}
-        />
-      </div>
 
-      {/* Tampilkan Saran LLM */}
-      {isFetchingSuggestion && (
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-700 flex items-center">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          AI sedang berpikir...
-        </div>
-      )}
-      {llmError && !isFetchingSuggestion && (
-        <Alert variant="destructive" className="mt-2">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error Inspirasi AI</AlertTitle>
-          <AlertDescription>
-            {llmError}
-            <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto -mr-2 -mt-2" onClick={() => setLlmError(null)}>
-              <XCircle className="h-4 w-4" />
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-      {llmSuggestion && !isFetchingSuggestion && (
-        <div className="mt-2 p-4 border rounded-md bg-green-50 border-green-300 text-green-800 relative">
-          <div className="flex justify-between items-start">
-            <h4 className="text-sm font-semibold mb-1 flex items-center">
-              <Lightbulb className="h-4 w-4 mr-1.5 text-green-600" />
-              Saran dari AI:
-            </h4>
-            <Button variant="ghost" size="icon" className="h-7 w-7 absolute top-1 right-1" onClick={() => setLlmSuggestion(null)}>
-              <XCircle className="h-5 w-5 text-green-700 hover:text-green-900" />
+            {/* Emotion Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowEmotionSidebar(!showEmotionSidebar)}
+              className="text-slate-600 hover:text-slate-800 hover:bg-slate-50 rounded-xl"
+            >
+              <Brain className="h-4 w-4 mr-2" />
+              Analisis Emosi
+              {emotionData && (
+                <div className="ml-2 w-2 h-2 bg-blue-500 rounded-full"></div>
+              )}
             </Button>
           </div>
-          <p
-            className="text-sm whitespace-pre-line"
-            dangerouslySetInnerHTML={{ __html: simpleMarkdownToHtml(llmSuggestion || "") }}
-          />
         </div>
-      )}
-      {/* ... Pesan Info/Error Global dan Tombol Aksi ... */}
-      {infoMessage && !error && (
-        <Alert variant="default" className="bg-blue-50 border-blue-300 text-blue-700">
-          <Info className="h-4 w-4 !text-blue-700" />
-          <AlertTitle>Informasi</AlertTitle>
-          <AlertDescription>{infoMessage}</AlertDescription>
-        </Alert>
-      )}
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
 
-      <div className="mb-4">
-        <Label className="block mb-1">Sumber Emosi</Label>
-        <div className="flex gap-4">
-          <label>
-            <input
-              type="radio"
-              name="emotion_source"
-              value="ai"
-              checked={emotionSource === 'ai'}
-              onChange={() => setEmotionSource('ai')}
-            />
-            AI (otomatis)
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="emotion_source"
-              value="manual"
-              checked={emotionSource === 'manual'}
-              onChange={() => setEmotionSource('manual')}
-            />
-            Pilih Sendiri
-          </label>
-        </div>
-      </div>
+        <div className="flex">
+          {/* Main Writing Area - Takes up most space */}
+          <div className={`transition-all duration-300 ${showEmotionSidebar ? 'w-2/3' : 'w-full'}`}>
+            <div className="p-8 lg:p-12">
+              
+              {/* Writing Container */}
+              <div className="max-w-4xl mx-auto space-y-8">
+                
+                {/* Journal Title */}
+                <div className="space-y-4">
+                  <Label htmlFor="journal-title" className="text-2xl font-light text-slate-800">
+                    Judul Jurnal
+                  </Label>
+                  <Input
+                    id="journal-title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Berikan judul untuk refleksi hari ini..."
+                    className="text-xl rounded-3xl border-slate-200 focus:border-blue-300 focus:ring-blue-100 h-16 bg-white"
+                    disabled={isLoading}
+                  />
+                </div>
 
-      {emotionSource === 'manual' && (
-        <div className="mb-4">
-          <Label htmlFor="emotion-select">Pilih Emosi</Label>
-          <select
-            id="emotion-select"
-            value={selectedEmotionId ?? ''}
-            onChange={e => setSelectedEmotionId(Number(e.target.value))}
-            className="block mt-1"
-          >
-            <option value="">-- Pilih emosi --</option>
-            {emotions.map(emotion => (
-              <option key={emotion.id} value={emotion.id}>{emotion.name}</option>
-            ))}
-          </select>
-        </div>
-      )}
+                {/* AI Inspiration Section - Between Title and Content */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-base font-medium text-slate-700">
+                      Butuh inspirasi?
+                    </Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleGetInspiration}
+                      disabled={isLoading || !content.trim()}
+                      className="text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-2xl px-4 py-2"
+                    >
+                      {isFetchingSuggestion ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Lightbulb className="mr-2 h-4 w-4" />
+                      )}
+                      Dapatkan Inspirasi
+                    </Button>
+                  </div>
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Button
-          onClick={handleAnalyzeEmotion}
-          disabled={isLoading || !content.trim()}
-          className="w-full sm:flex-1"
-          variant="outline"
-        >
-          {isAnalyzingEmotion ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-          Analisis Emosi
-        </Button>
-        <Button
-          onClick={handleSaveJournal}
-          disabled={
-            isLoading ||
-            !content.trim() ||
-            !title.trim() ||
-            (emotionSource === 'ai' && !emotionData) ||
-            (emotionSource === 'manual' && !selectedEmotionId)
-          }
-          className="w-full sm:flex-1"
-        >
-          {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-          Simpan Catatan
-        </Button>
-      </div>
+                  {/* AI Inspiration Display */}
+                  {isFetchingSuggestion && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-3xl p-6">
+                      <div className="flex items-center text-blue-700">
+                        <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                        <span className="font-medium">AI sedang memikirkan inspirasi untukmu...</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {llmSuggestion && !isFetchingSuggestion && (
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-6 relative">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-emerald-100 rounded-2xl flex items-center justify-center">
+                            <Lightbulb className="h-4 w-4 text-emerald-600" />
+                          </div>
+                          <h4 className="font-medium text-emerald-800">Inspirasi Untukmu</h4>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-emerald-700 hover:text-emerald-900 hover:bg-emerald-100 rounded-xl" 
+                          onClick={() => setLlmSuggestion(null)}
+                        >
+                          <XCircle className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div
+                        className="text-emerald-800 whitespace-pre-line leading-relaxed"
+                        dangerouslySetInnerHTML={{ __html: simpleMarkdownToHtml(llmSuggestion || "") }}
+                      />
+                    </div>
+                  )}
 
-      {/* ... Tampilan Hasil Analisis Emosi ... */}
-      {emotionData && !isAnalyzingEmotion && (
-        <div className="mt-6 space-y-3 p-4 border rounded-md bg-muted/30">
-          <h3 className="text-lg font-semibold border-b pb-2 mb-2">Hasil Analisis Emosi</h3>
-          <div>
-            <p className="text-base">
-              Emosi Dominan: <strong className="text-lg text-primary">{emotionData.top_prediction.label}</strong> ({emotionData.top_prediction.confidence.toFixed(2)}%)
-            </p>
-            <p className="text-sm mt-2 text-muted-foreground">Detail Prediksi:</p>
-            <ul className="text-xs list-disc list-inside pl-1 mt-1 grid grid-cols-2 sm:grid-cols-3 gap-x-4">
-              {Object.entries(emotionData.all_predictions)
-                .sort(([, a], [, b]) => b - a) // Urutkan dari tertinggi ke terendah
-                .map(([key, value]) => (
-                  <li key={key} className="break-inside-avoid my-0.5">{key}: {value.toFixed(2)}%</li>
-                ))}
-            </ul>
+                  {llmError && !isFetchingSuggestion && (
+                    <Alert variant="destructive" className="rounded-3xl border-red-200 bg-red-50">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>Error Inspirasi</AlertTitle>
+                      <AlertDescription className="flex justify-between items-start">
+                        <span>{llmError}</span>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 -mr-2 -mt-2" onClick={() => setLlmError(null)}>
+                          <XCircle className="h-4 w-4" />
+                        </Button>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+
+                {/* Main Writing Area */}
+                <div className="space-y-4">
+                  <Label htmlFor="journal-content" className="text-2xl font-light text-slate-800">
+                    Bagaimana perasaanmu hari ini?
+                  </Label>
+                  
+                  <Textarea
+                    id="journal-content"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder="Luangkan waktu sejenak untuk merefleksikan hari ini... Apa yang kamu rasakan? Apa yang membuatmu bersyukur? Atau mungkin ada sesuatu yang ingin kamu lepaskan?"
+                    rows={24}
+                    className="text-lg rounded-3xl border-slate-200 focus:border-blue-300 focus:ring-blue-100 resize-none leading-relaxed bg-white shadow-sm"
+                    disabled={isLoading}
+                  />
+                </div>
+
+                {/* Primary Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 pt-8 border-t border-slate-200">
+                  <Button
+                    onClick={handleAnalyzeEmotion}
+                    disabled={isLoading || !content.trim()}
+                    variant="outline"
+                    className="flex-1 h-14 rounded-3xl border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 bg-white"
+                  >
+                    {isAnalyzingEmotion ? (
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    ) : (
+                      <Sparkles className="mr-2 h-5 w-5" />
+                    )}
+                    Analisis Emosi
+                  </Button>
+                  <Button
+                    onClick={handleSaveJournal}
+                    disabled={
+                      isLoading ||
+                      !content.trim() ||
+                      !title.trim() ||
+                      (emotionSource === 'ai' && !emotionData) ||
+                      (emotionSource === 'manual' && !selectedEmotionId)
+                    }
+                    className="flex-1 h-14 rounded-3xl bg-blue-500 hover:bg-blue-600 text-white shadow-sm"
+                  >
+                    {isSaving ? (
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    ) : (
+                      <Save className="mr-2 h-5 w-5" />
+                    )}
+                    Simpan Jurnal
+                  </Button>
+                </div>
+
+                {/* Status Messages */}
+                {infoMessage && !error && (
+                  <Alert variant="default" className="bg-blue-50 border-blue-200 rounded-3xl">
+                    <Info className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-blue-700">{infoMessage}</AlertDescription>
+                  </Alert>
+                )}
+                
+                {error && (
+                  <Alert variant="destructive" className="rounded-3xl border-red-200 bg-red-50">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Emotion Analysis Sidebar - Slides in when needed */}
+          <div className={`transition-all duration-300 ${
+            showEmotionSidebar ? 'w-1/3 opacity-100' : 'w-0 opacity-0 overflow-hidden'
+          }`}>
+            {/* Rounded container like weather section */}
+            <div className="mx-6 mt-6 bg-white border border-slate-200 rounded-3xl shadow-sm h-[calc(100vh-8rem)] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-purple-50 rounded-2xl flex items-center justify-center">
+                      <Brain className="h-5 w-5 text-purple-500" />
+                    </div>
+                    <h3 className="text-lg font-medium text-slate-800">Analisis Emosi</h3>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowEmotionSidebar(false)}
+                    className="h-8 w-8 text-slate-500 hover:text-slate-700 rounded-xl"
+                  >
+                    <XCircle className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Emotion Source Selection */}
+                <div className="space-y-4 mb-6 p-4 bg-slate-50 rounded-2xl">
+                  <Label className="text-sm font-medium text-slate-700">Sumber Emosi</Label>
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-white transition-colors">
+                      <input
+                        type="radio"
+                        name="emotion_source"
+                        value="ai"
+                        checked={emotionSource === 'ai'}
+                        onChange={() => setEmotionSource('ai')}
+                        className="w-4 h-4 text-blue-500 border-slate-300 focus:ring-blue-500"
+                      />
+                      <span className="text-slate-700">AI (otomatis)</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-white transition-colors">
+                      <input
+                        type="radio"
+                        name="emotion_source"
+                        value="manual"
+                        checked={emotionSource === 'manual'}
+                        onChange={() => setEmotionSource('manual')}
+                        className="w-4 h-4 text-blue-500 border-slate-300 focus:ring-blue-500"
+                      />
+                      <span className="text-slate-700">Pilih Sendiri</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Manual Emotion Selection */}
+                {emotionSource === 'manual' && (
+                  <div className="mb-6 p-4 bg-slate-50 rounded-2xl">
+                    <Label htmlFor="emotion-select" className="text-sm font-medium text-slate-700 mb-3 block">
+                      Pilih Emosi
+                    </Label>
+                    <select
+                      id="emotion-select"
+                      value={selectedEmotionId ?? ''}
+                      onChange={e => setSelectedEmotionId(Number(e.target.value))}
+                      className="w-full h-12 px-4 rounded-2xl border border-slate-200 focus:border-blue-300 focus:ring-blue-100 text-slate-700 bg-white"
+                    >
+                      <option value="">-- Pilih emosi --</option>
+                      {emotions.map(emotion => (
+                        <option key={emotion.id} value={emotion.id}>{emotion.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Emotion Analysis Results */}
+                {emotionData && !isAnalyzingEmotion && (
+                  <div className="space-y-4">
+                    <div className="bg-slate-50 rounded-2xl p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-6 h-6 bg-green-100 rounded-lg flex items-center justify-center">
+                          <Target className="h-3 w-3 text-green-600" />
+                        </div>
+                        <span className="text-sm font-medium text-slate-800">Emosi Dominan</span>
+                      </div>
+                      <p className="text-lg font-medium text-blue-600 mb-1">
+                        {emotionData.top_prediction.label}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {emotionData.top_prediction.confidence.toFixed(1)}% confidence
+                      </p>
+                    </div>
+                    
+                    <div className="bg-slate-50 rounded-2xl p-4">
+                      <h4 className="text-sm font-medium text-slate-700 mb-4">Detail Analisis</h4>
+                      <div className="space-y-3">
+                        {Object.entries(emotionData.all_predictions)
+                          .sort(([, a], [, b]) => b - a)
+                          .slice(0, 5)
+                          .map(([key, value]) => (
+                            <div key={key} className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-slate-700 capitalize">{key}</span>
+                                <span className="text-xs text-slate-500 font-medium">{value.toFixed(0)}%</span>
+                              </div>
+                              <div className="w-full h-2 bg-white rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-blue-400 rounded-full transition-all duration-500"
+                                  style={{ width: `${value}%` }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {isAnalyzingEmotion && (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-purple-50 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                        <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+                      </div>
+                      <p className="text-sm text-slate-600 font-medium">Menganalisis emosi...</p>
+                      <p className="text-xs text-slate-500 mt-1">Tunggu sebentar ya</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Helper Text */}
+                {!emotionData && !isAnalyzingEmotion && (
+                  <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <span className="text-xs">💡</span>
+                      </div>
+                      <span className="text-sm font-medium text-blue-800">Tips</span>
+                    </div>
+                    <p className="text-sm text-blue-700 leading-relaxed">
+                      Tulis jurnalmu terlebih dahulu, lalu gunakan analisis AI untuk memahami emosimu atau pilih emosi secara manual.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
