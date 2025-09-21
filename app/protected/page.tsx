@@ -1,14 +1,13 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Metadata } from 'next';
-import AirQualityHeatmap from '@/components/dashboard/AirQualityHeatmap';
-import { Calendar, TrendingUp, Award, Clock, BookOpen, Sparkles, Heart, LucideProps, Plus, BarChart3, Target, Smile } from "lucide-react";
+import { Calendar, TrendingUp, Award, Clock, BookOpen, Sparkles, Heart, LucideProps, Plus, BarChart3, Target, Smile, Flame, Activity, Brain, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import DashboardNotifications from "@/components/dashboard/DashboardNotifications";
+import MoodTrendChart from "@/components/dashboard/MoodTrendChart";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
-import PublicAirQualityMap from "@/components/home/PublicAirQualityMap";
 
 export const metadata: Metadata = {
   title: 'Dashboard | AtmosFeel',
@@ -35,6 +34,18 @@ export default async function HomePage() {
     .eq("user_id", user.id)
     .single();
 
+  // Ambil data mood trend untuk 7 hari terakhir
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const { data: recentMoodData } = await supabase
+    .from("journal_entries")
+    .select("created_at, mood_score")
+    .eq("user_id", user.id)
+    .gte("created_at", sevenDaysAgo.toISOString())
+    .not("mood_score", "is", null)
+    .order("created_at", { ascending: true });
+
   // Ambil aktivitas terbaru (5 jurnal terakhir)
   const { data: recentJournals } = await supabase
     .from("journal_entries")
@@ -44,9 +55,6 @@ export default async function HomePage() {
     .limit(5);
 
   // Ambil achievements yang baru diraih (7 hari terakhir)
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
   const { data: recentAchievements } = await supabase
     .from("user_achievements")
     .select("*, achievements(name, description, points_reward)")
@@ -54,6 +62,18 @@ export default async function HomePage() {
     .gte("earned_at", sevenDaysAgo.toISOString())
     .order("earned_at", { ascending: false })
     .limit(3);
+
+  // Ambil data untuk quick insights
+  const { data: weeklyJournalCount } = await supabase
+    .from("journal_entries")
+    .select("id", { count: 'exact' })
+    .eq("user_id", user.id)
+    .gte("created_at", sevenDaysAgo.toISOString());
+
+  // Hitung rata-rata mood minggu ini
+  const weeklyAverageMood = recentMoodData && recentMoodData.length > 0
+    ? recentMoodData.reduce((sum, entry) => sum + (entry.mood_score || 0), 0) / recentMoodData.length
+    : null;
 
   const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
 
@@ -172,9 +192,11 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Main Content */}
-            <div className="lg:col-span-2 space-y-8">
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            
+            {/* Left Column - Main Overview */}
+            <div className="lg:col-span-3 space-y-8">
               
               {/* Mood Check-in Card */}
               <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
@@ -200,8 +222,8 @@ export default async function HomePage() {
                 </div>
               </div>
 
-              {/* Stats Overview */}
-              <div className="grid grid-cols-3 gap-6">
+              {/* Key Metrics */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white rounded-3xl p-6 text-center shadow-sm border border-slate-100">
                   <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <Calendar className="h-8 w-8 text-blue-500" />
@@ -213,8 +235,8 @@ export default async function HomePage() {
                 </div>
 
                 <div className="bg-white rounded-3xl p-6 text-center shadow-sm border border-slate-100">
-                  <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Target className="h-8 w-8 text-emerald-500" />
+                  <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Flame className="h-8 w-8 text-orange-500" />
                   </div>
                   <div className="text-3xl font-light text-slate-800 mb-2">
                     {profile?.current_streak || 0}
@@ -230,6 +252,101 @@ export default async function HomePage() {
                     {profile?.total_points || 0}
                   </div>
                   <div className="text-sm text-slate-500 font-medium">Total Poin</div>
+                </div>
+              </div>
+
+              {/* High-Level Analytics */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                {/* Mood Trend Chart */}
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-medium text-slate-800 flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center">
+                        <TrendingUp className="h-4 w-4 text-blue-600" />
+                      </div>
+                      Tren Mood
+                    </h3>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      asChild 
+                      className="text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl"
+                    >
+                      <Link href="/protected/profile">
+                        Detail
+                      </Link>
+                    </Button>
+                  </div>
+                  
+                  {recentMoodData && recentMoodData.length > 0 ? (
+                    <MoodTrendChart />
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                        <TrendingUp className="h-8 w-8 text-slate-300" />
+                      </div>
+                      <p className="text-slate-500 text-sm">
+                        Belum ada data mood. Mulai menulis jurnal untuk melihat tren mood Anda.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Weekly Summary */}
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-medium text-slate-800 flex items-center gap-3">
+                      <div className="w-8 h-8 bg-green-50 rounded-xl flex items-center justify-center">
+                        <Activity className="h-4 w-4 text-green-600" />
+                      </div>
+                      Ringkasan Minggu Ini
+                    </h3>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                          <BookOpen className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-800">Jurnal Ditulis</p>
+                          <p className="text-sm text-slate-500">7 hari terakhir</p>
+                        </div>
+                      </div>
+                      <div className="text-2xl font-light text-slate-800">
+                        {weeklyJournalCount?.length || 0}
+                      </div>
+                    </div>
+
+                    {weeklyAverageMood !== null && (
+                      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                            <Brain className="h-5 w-5 text-purple-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-slate-800">Rata-rata Mood</p>
+                            <p className="text-sm text-slate-500">Minggu ini</p>
+                          </div>
+                        </div>
+                        <div className="text-2xl font-light text-slate-800">
+                          {weeklyAverageMood.toFixed(1)}
+                        </div>
+                      </div>
+                    )}
+
+                    <Button 
+                      asChild 
+                      variant="outline" 
+                      className="w-full rounded-2xl border-slate-200 hover:bg-slate-50"
+                    >
+                      <Link href="/protected/profile">
+                        Lihat Analitik Lengkap
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
               </div>
 
