@@ -261,13 +261,34 @@ export default function JournalForm({ userId }: JournalFormProps) {
         mood_score: calculatedMoodScore,
       };
 
-      const { error: insertError } = await supabase
+      const { data: insertedJournal, error: insertError } = await supabase
         .from('journal_entries')
-        .insert([journalEntryData]);
+        .insert([journalEntryData])
+        .select('id')
+        .single();
 
       if (insertError) {
         console.error("Error inserting journal:", insertError);
         throw new Error(`Gagal menyimpan jurnal: ${insertError.message}`);
+      }
+
+      // Generate embeddings for the saved journal
+      try {
+        const response = await fetch('/api/chat/generate-embeddings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ journalId: insertedJournal.id }),
+        });
+
+        if (response.ok) {
+          console.log('Embeddings generated for journal:', insertedJournal.id);
+        } else {
+          console.error('Failed to generate embeddings for journal:', insertedJournal.id);
+        }
+      } catch (error) {
+        console.error('Error triggering embedding generation:', error);
       }
 
       try {
@@ -290,6 +311,7 @@ export default function JournalForm({ userId }: JournalFormProps) {
       } catch (gamifError: any) {
         console.error("Error memanggil API gamifikasi:", gamifError);
       }
+
 
       setTitle('');
       setContent('');
@@ -357,8 +379,8 @@ Tolong berikan 2 pertanyaan reflektif yang sederhana dan hangat, agar saya bisa 
           <div className="flex items-center justify-between">
             {/* Weather Display - Minimal Mode */}
             {weatherData && (
-              <WeatherDisplay 
-                weather={weatherData} 
+              <WeatherDisplay
+                weather={weatherData}
                 locationName={userLocation?.name}
                 isMinimal={true}
               />
@@ -384,10 +406,10 @@ Tolong berikan 2 pertanyaan reflektif yang sederhana dan hangat, agar saya bisa 
           {/* Main Writing Area - Takes up most space */}
           <div className={`transition-all duration-300 ${showEmotionSidebar ? 'w-2/3' : 'w-full'}`}>
             <div className="p-8 lg:p-12">
-              
+
               {/* Writing Container */}
               <div className="max-w-4xl mx-auto space-y-8">
-                
+
                 {/* Journal Title */}
                 <div className="space-y-4">
                   <Label htmlFor="journal-title" className="text-2xl font-light text-slate-800">
@@ -434,7 +456,7 @@ Tolong berikan 2 pertanyaan reflektif yang sederhana dan hangat, agar saya bisa 
                       </div>
                     </div>
                   )}
-                  
+
                   {llmSuggestion && !isFetchingSuggestion && (
                     <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-6 relative">
                       <div className="flex justify-between items-start mb-3">
@@ -444,10 +466,10 @@ Tolong berikan 2 pertanyaan reflektif yang sederhana dan hangat, agar saya bisa 
                           </div>
                           <h4 className="font-medium text-emerald-800">Inspirasi Untukmu</h4>
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-emerald-700 hover:text-emerald-900 hover:bg-emerald-100 rounded-xl" 
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-emerald-700 hover:text-emerald-900 hover:bg-emerald-100 rounded-xl"
                           onClick={() => setLlmSuggestion(null)}
                         >
                           <XCircle className="h-4 w-4" />
@@ -479,7 +501,7 @@ Tolong berikan 2 pertanyaan reflektif yang sederhana dan hangat, agar saya bisa 
                   <Label htmlFor="journal-content" className="text-2xl font-light text-slate-800">
                     Bagaimana perasaanmu hari ini?
                   </Label>
-                  
+
                   <Textarea
                     id="journal-content"
                     value={content}
@@ -533,7 +555,7 @@ Tolong berikan 2 pertanyaan reflektif yang sederhana dan hangat, agar saya bisa 
                     <AlertDescription className="text-blue-700">{infoMessage}</AlertDescription>
                   </Alert>
                 )}
-                
+
                 {error && (
                   <Alert variant="destructive" className="rounded-3xl border-red-200 bg-red-50">
                     <AlertCircle className="h-4 w-4" />
@@ -545,9 +567,8 @@ Tolong berikan 2 pertanyaan reflektif yang sederhana dan hangat, agar saya bisa 
           </div>
 
           {/* Emotion Analysis Sidebar - Slides in when needed */}
-          <div className={`transition-all duration-300 ${
-            showEmotionSidebar ? 'w-1/3 opacity-100' : 'w-0 opacity-0 overflow-hidden'
-          }`}>
+          <div className={`transition-all duration-300 ${showEmotionSidebar ? 'w-1/3 opacity-100' : 'w-0 opacity-0 overflow-hidden'
+            }`}>
             {/* Rounded container like weather section */}
             <div className="mx-6 mt-6 bg-white border border-slate-200 rounded-3xl shadow-sm h-[calc(100vh-8rem)] overflow-y-auto">
               <div className="p-6">
@@ -634,7 +655,7 @@ Tolong berikan 2 pertanyaan reflektif yang sederhana dan hangat, agar saya bisa 
                         {emotionData.top_prediction.confidence.toFixed(1)}% confidence
                       </p>
                     </div>
-                    
+
                     <div className="bg-slate-50 rounded-2xl p-4">
                       <h4 className="text-sm font-medium text-slate-700 mb-4">Detail Analisis</h4>
                       <div className="space-y-3">
@@ -648,7 +669,7 @@ Tolong berikan 2 pertanyaan reflektif yang sederhana dan hangat, agar saya bisa 
                                 <span className="text-xs text-slate-500 font-medium">{value.toFixed(0)}%</span>
                               </div>
                               <div className="w-full h-2 bg-white rounded-full overflow-hidden">
-                                <div 
+                                <div
                                   className="h-full bg-blue-400 rounded-full transition-all duration-500"
                                   style={{ width: `${value}%` }}
                                 />
