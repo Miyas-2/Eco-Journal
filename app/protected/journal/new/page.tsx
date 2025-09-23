@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2, ArrowLeft } from 'lucide-react'; // Tambahkan ArrowLeft
+import { Loader2, ArrowLeft, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function NewJournalPage() {
@@ -31,38 +31,41 @@ export default function NewJournalPage() {
 
   if (loadingUser) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="ml-2">Memuat...</p>
+      <div className="min-h-screen bg-slate-50 flex justify-center items-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-4">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          </div>
+          <p className="text-slate-600 font-medium">Memuat...</p>
+        </div>
       </div>
     );
   }
 
-  if (!user) { // Seharusnya sudah di-redirect, tapi sebagai fallback
+  if (!user) {
     return (
-      <div className="flex flex-col justify-center items-center min-h-screen">
-        <p>Anda harus login untuk membuat jurnal.</p>
-        <Link href="/auth/login" className="text-blue-600 hover:underline mt-2">
-          Login di sini
-        </Link>
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center">
+        <div className="text-center max-w-md">
+          <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <span className="text-2xl">⚠️</span>
+          </div>
+          <h2 className="text-xl font-medium text-slate-800 mb-3">Akses Terbatas</h2>
+          <p className="text-slate-500 mb-6">Anda harus login untuk membuat jurnal.</p>
+          <Button asChild className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-2xl">
+            <Link href="/auth/login">
+              Login di sini
+            </Link>
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-      <div className="mb-6">
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/protected" className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Kembali ke Dashboard
-          </Link>
-        </Button>
-      </div>
-      <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-center">Buat Entri Jurnal Baru</h1>
-      <div className="max-w-2xl mx-auto bg-card p-6 sm:p-8 rounded-lg shadow-md border">
-        <JournalForm userId={user.id} />
-      </div>
+    <div className="min-h-screen bg-slate-50">
+
+      {/* Journal Form - Full Width */}
+      <JournalForm userId={user.id} />
     </div>
   );
 }

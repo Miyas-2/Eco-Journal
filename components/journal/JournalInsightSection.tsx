@@ -2,18 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, Lightbulb, AlertTriangle, RefreshCw } from 'lucide-react';
-import { WeatherApiResponse } from '@/types'; // Pastikan path ini benar
+import { Loader2, Lightbulb, AlertTriangle, RefreshCw, Sparkles, Brain } from 'lucide-react';
+import { WeatherApiResponse } from '@/types';
 
 interface JournalInsightSectionProps {
   initialInsightText: string | null;
   journalId: string;
   userId: string;
   journalContent: string;
-  primaryEmotion: string; // Emosi utama yang sudah ditentukan (misal: "Cemas")
+  primaryEmotion: string;
   weatherData: WeatherApiResponse | null;
-  locationDisplayName: string; // Nama lokasi yang akan ditampilkan ke AI
-  journalCreatedAt: string; // <-- TAMBAHKAN PROPERTI INI
+  locationDisplayName: string;
+  journalCreatedAt: string;
 }
 
 export default function JournalInsightSection({
@@ -24,7 +24,7 @@ export default function JournalInsightSection({
   primaryEmotion,
   weatherData,
   locationDisplayName,
-  journalCreatedAt, // <-- TERIMA PROPERTI INI
+  journalCreatedAt,
 }: JournalInsightSectionProps) {
   const [insight, setInsight] = useState<string | null>(initialInsightText);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +36,6 @@ export default function JournalInsightSection({
     setError(null);
     setHasFetchedOnce(true);
 
-    // Pastikan journalCreatedAt ada sebelum mengirim
     if (!journalCreatedAt) {
         setError("Tanggal pembuatan jurnal tidak tersedia. Tidak dapat menghasilkan insight.");
         setIsLoading(false);
@@ -54,7 +53,7 @@ export default function JournalInsightSection({
           emotion: primaryEmotion,
           weatherData,
           locationName: locationDisplayName,
-          journalCreatedAt, // <-- SERTAKAN PROPERTI INI DI BODY
+          journalCreatedAt,
         }),
       });
 
@@ -79,59 +78,159 @@ export default function JournalInsightSection({
   }, [initialInsightText]);
 
   const buttonText = isLoading
-    ? "Memproses..."
+    ? "Menganalisis..."
     : insight
-    ? "Segarkan Insight"
-    : "Dapatkan Insight";
+    ? "Perbarui Insight"
+    : "Buat Insight";
 
   const ButtonIcon = isLoading
     ? Loader2
     : insight
     ? RefreshCw
-    : Lightbulb;
+    : Brain;
+
+  const canGenerateInsight = primaryEmotion && weatherData && journalCreatedAt;
 
   return (
-    <section className="p-4 border rounded-lg bg-background shadow">
-      <div className="flex justify-between items-center mb-3">
-        <h2 className="text-lg font-semibold flex items-center text-foreground">
-          <Lightbulb className="h-5 w-5 mr-2 text-yellow-400" />
-          Insight Harian Untukmu
-        </h2>
+    <div className="space-y-8">
+      {/* Simple Header - matches journal style */}
+      <div className="text-center">
+        <p className="text-sm text-slate-500 mb-6">
+          Refleksi personal berdasarkan jurnal, emosi, dan kondisi sekitar Anda
+        </p>
+        
         <Button
-          variant="outline"
-          size="sm"
           onClick={handleFetchOrRefreshInsight}
-          disabled={isLoading || !primaryEmotion || !weatherData || !journalCreatedAt} // Tambahkan !journalCreatedAt ke kondisi disabled
-          title={!primaryEmotion || !weatherData || !journalCreatedAt ? "Data emosi, cuaca, atau tanggal jurnal tidak lengkap" : buttonText}
+          disabled={isLoading || !canGenerateInsight}
+          className={`
+            rounded-2xl px-6 py-3 transition-all duration-200
+            ${isLoading || !canGenerateInsight
+              ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+              : 'bg-sky-500 hover:bg-sky-600 text-white shadow-sm hover:shadow-md'
+            }
+          `}
         >
-          <ButtonIcon className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-          <span className="ml-2 hidden sm:inline">{buttonText}</span>
+          <ButtonIcon className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          {buttonText}
         </Button>
       </div>
 
-      {(!primaryEmotion || !weatherData || !journalCreatedAt) && !hasFetchedOnce && ( // Tambahkan !journalCreatedAt
-         <p className="text-sm text-muted-foreground italic">
-           Data emosi, cuaca, atau tanggal jurnal tidak lengkap untuk menghasilkan insight.
-         </p>
-      )}
-
-      {hasFetchedOnce && (
-        <div className="bg-muted/50 p-3 rounded-md text-sm text-foreground min-h-[50px]">
-          {isLoading && <p className="italic text-center">AI sedang merangkai kata untukmu...</p>}
-          {!isLoading && error && (
-            <div className="flex items-start text-destructive">
-              <AlertTriangle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
-              <p>{error}</p>
+      {/* Content Area - matches journal content style */}
+      <div className="max-w-3xl mx-auto">
+        {/* Data Requirements Notice */}
+        {!canGenerateInsight && !hasFetchedOnce && (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="h-8 w-8 text-amber-500" />
             </div>
-          )}
-          {!isLoading && !error && insight && (
-            <p className="whitespace-pre-line">{insight}</p>
-          )}
-          {!isLoading && !error && !insight && (
-            <p className="italic text-center">Klik tombol untuk mendapatkan insight.</p>
-          )}
-        </div>
-      )}
-    </section>
+            <h4 className="text-lg font-medium text-slate-800 mb-2">Data Belum Lengkap</h4>
+            <p className="text-slate-600 leading-relaxed max-w-md mx-auto">
+              Insight memerlukan data emosi, cuaca, dan tanggal jurnal yang lengkap untuk dapat dihasilkan dengan optimal.
+            </p>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-16">
+            <div className="w-16 h-16 bg-sky-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Loader2 className="h-8 w-8 text-sky-500 animate-spin" />
+            </div>
+            <h4 className="text-lg font-medium text-slate-800 mb-2">AI sedang menganalisis...</h4>
+            <p className="text-slate-600">Membuat insight personal berdasarkan jurnal Anda</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {!isLoading && error && (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="h-8 w-8 text-red-500" />
+            </div>
+            <h4 className="text-lg font-medium text-slate-800 mb-2">Gagal Memuat Insight</h4>
+            <p className="text-slate-600 leading-relaxed max-w-md mx-auto">
+              {error}
+            </p>
+            <Button
+              variant="outline"
+              onClick={handleFetchOrRefreshInsight}
+              disabled={!canGenerateInsight}
+              className="mt-4 rounded-2xl"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Coba Lagi
+            </Button>
+          </div>
+        )}
+
+        {/* Insight Content - matches journal content exactly */}
+        {!isLoading && !error && insight && (
+          <div className="space-y-8">
+            {/* Main insight content with same styling as journal */}
+            <div className="prose prose-lg prose-slate max-w-none leading-relaxed">
+              <div className="text-slate-700 text-lg leading-loose whitespace-pre-line font-light">
+                {insight}
+              </div>
+            </div>
+            
+            {/* Footer attribution - matches journal footer style */}
+            <div className="pt-8 border-t border-slate-200">
+              <div className="flex items-center justify-center">
+                <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-50 px-4 py-2 rounded-xl">
+                  <Sparkles className="h-4 w-4" />
+                  <span>Dibuat oleh AI • Berdasarkan jurnal, emosi, dan cuaca</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Empty State - First Time */}
+        {!isLoading && !error && !insight && !hasFetchedOnce && canGenerateInsight && (
+          <div className="text-center py-16">
+            <div className="w-20 h-20 bg-sky-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <Brain className="h-10 w-10 text-sky-500" />
+            </div>
+            <h4 className="text-xl font-light text-slate-800 mb-4 leading-tight">
+              Insight Personal Menanti
+            </h4>
+            <p className="text-slate-600 leading-relaxed max-w-lg mx-auto mb-8">
+              AI siap menganalisis jurnal, emosi, dan kondisi cuaca Anda untuk memberikan 
+              refleksi yang bermakna dan insight personal yang mendalam.
+            </p>
+            <Button
+              onClick={handleFetchOrRefreshInsight}
+              className="bg-sky-500 hover:bg-sky-600 text-white rounded-2xl px-8 py-3 shadow-sm hover:shadow-md transition-all duration-200"
+              disabled={isLoading}
+            >
+              <Brain className="h-5 w-5 mr-2" />
+              Buat Insight Pertama
+            </Button>
+          </div>
+        )}
+
+        {/* Empty State - After Fetch Attempt */}
+        {!isLoading && !error && !insight && hasFetchedOnce && (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Lightbulb className="h-8 w-8 text-slate-400" />
+            </div>
+            <h4 className="text-lg font-medium text-slate-800 mb-2">Insight Belum Tersedia</h4>
+            <p className="text-slate-600 leading-relaxed max-w-md mx-auto mb-6">
+              Tidak ada insight yang dapat dihasilkan saat ini. Coba lagi atau pastikan jurnal Anda memiliki konten yang cukup.
+            </p>
+            <Button
+              variant="outline"
+              onClick={handleFetchOrRefreshInsight}
+              disabled={!canGenerateInsight}
+              className="rounded-2xl"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Coba Lagi
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

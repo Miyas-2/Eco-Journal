@@ -1,46 +1,73 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+"use client";
+
+import { createClient } from "@/lib/supabase/client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import JournalEditForm from "@/components/journal/journal-edit-form";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
-export default async function EditJournalPage({ params }: { params: { id: string } }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+interface JournalEditPageProps {
+  params: { id: string };
+}
 
-  if (!user) {
-    redirect("/auth/login");
-  }
-
-  const { id: journalId } = await params;
+export default function JournalEditPage({ params }: JournalEditPageProps) {
+  const [journal, setJournal] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   
-  // Ambil data journal untuk di-edit
-  const { data: journal, error: journalError } = await supabase
-    .from("journal_entries")
-    .select("*, emotions(name)")
-    .eq("id", journalId)  
-    .eq("user_id", user.id)
-    .single();
+  const router = useRouter();
+  const supabase = createClient();
 
-  if (journalError || !journal) {
-    redirect("/protected/journal/history?error=notfound");
+  useEffect(() => {
+    const loadData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push("/auth/login");
+        return;
+      }
+
+      setUser(user);
+
+      const { id: journalId } = await params;
+      const { data: journal, error: journalError } = await supabase
+        .from("journal_entries")
+        .select("*, emotions(name)")
+        .eq("id", journalId)
+        .eq("user_id", user.id)
+        .single();
+
+      if (journalError || !journal) {
+        console.error("Error fetching journal or journal not found:", journalError);
+        router.push("/protected/journal/history?error=notfound");
+        return;
+      }
+
+      setJournal(journal);
+      setLoading(false);
+    };
+
+    loadData();
+  }, [params, router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+            <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          <p className="text-slate-600">Memuat jurnal...</p>
+        </div>
+      </div>
+    );
   }
+
+  if (!journal || !user) return null;
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-      <div className="mb-6">
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/protected/journal/history" className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Kembali ke History
-          </Link>
-        </Button>
-      </div>
-      <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-center">Edit Jurnal</h1>
-      <div className="max-w-2xl mx-auto bg-card p-6 sm:p-8 rounded-lg shadow-md border">
-        <JournalEditForm userId={user.id} existingJournal={journal} />
-      </div>
-    </div>
+    <JournalEditForm
+      userId={user.id}
+      existingJournal={journal}
+    />
   );
 }

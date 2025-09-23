@@ -7,6 +7,7 @@ import { ConnectSupabaseSteps } from "@/components/tutorial/connect-supabase-ste
 import { SignUpUserSteps } from "@/components/tutorial/sign-up-user-steps";
 import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
+import PublicAirQualityMap from '@/components/home/PublicAirQualityMap';
 
 export default function Home() {
   return (
@@ -30,6 +31,20 @@ export default function Home() {
             {hasEnvVars ? <SignUpUserSteps /> : <ConnectSupabaseSteps />}
           </main>
         </div>
+        {/* Air Quality Map Section */}
+        <section className="py-16 bg-muted/50">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center mb-8">Real-Time Air Quality Map</h2>
+            <p className="text-center text-muted-foreground mb-10 max-w-3xl mx-auto">
+              Explore air quality conditions from our community's journal entries. The map displays
+              real-time and historical data with color-coded indicators representing air quality levels.
+            </p>
+            <div className="max-w-5xl mx-auto">
+              <PublicAirQualityMap />
+            </div>
+          </div>
+        </section>
+
 
         <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
           <p>
