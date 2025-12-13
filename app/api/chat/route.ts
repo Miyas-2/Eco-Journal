@@ -140,9 +140,18 @@ export async function POST(request: NextRequest) {
     // Build optimized prompt with detailed AQI data
     const prompt = buildOptimizedPrompt(message, userAnalysis, journalContext, conversationContext);
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const result = await model.generateContent(prompt);
-    const aiResponse = result.response.text();
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    
+    let aiResponse: string;
+    try {
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      aiResponse = response.text();
+    } catch (apiError) {
+      console.error("Gemini API error:", apiError);
+      // Fallback response when API fails
+      aiResponse = "Maaf, saya sedang mengalami gangguan teknis. Silakan coba lagi dalam beberapa saat.";
+    }
 
     // Store AI response
     await supabase
@@ -243,5 +252,14 @@ INSTRUKSI PENTING:
 - Gunakan threshold: PM2.5 >35μg/m³ = buruk, EPA ≥4 = tidak sehat
 - Berikan persentase dan pola spesifik dari data yang tersedia
 
-Jawab dengan data faktual dan spesifik, bukan perkiraan umum.`;
+ATURAN FORMATTING WAJIB:
+- JANGAN gunakan simbol ** untuk bold/tebal dalam response
+- JANGAN gunakan formatting Markdown (*, **, ___, dll.)
+- Gunakan HURUF KAPITAL untuk penekanan penting
+- Gunakan tanda titik dua (:) dan dash (-) untuk struktur
+- Gunakan angka dan bullet (•) untuk list items
+- Contoh yang BENAR: "ANALISIS KUALITAS UDARA dari Data Anda:", "100% Hari dengan AQI Buruk:", "PM2.5: 144.25μg/m³ (buruk)"
+- Contoh yang SALAH: "**Analisis Kualitas Udara**", "**100% Hari**", "**PM2.5: 144.25μg/m³**"
+
+Jawab dengan data faktual dan spesifik menggunakan formatting plain text tanpa Markdown.`;
 }

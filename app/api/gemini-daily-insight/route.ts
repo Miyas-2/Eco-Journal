@@ -56,7 +56,7 @@ export async function POST(req: Request) {
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const modelName = "gemini-1.5-flash-latest"; // Atau model yang Anda gunakan
+        const modelName = "gemini-2.5-flash"; // Atau model yang Anda gunakan
         const model = genAI.getGenerativeModel({
             model: modelName,
             safetySettings: [
