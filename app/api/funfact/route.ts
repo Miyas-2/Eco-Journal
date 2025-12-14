@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const modelName = "gemini-1.5-flash-latest"; // Sesuaikan jika model lain yang berfungsi untuk Anda
+    const modelName = "-1.5-flash-latest"; // Sesuaikan jika model lain yang berfungsi untuk Anda
 
     const model = genAI.getGenerativeModel({
       model: modelName,
