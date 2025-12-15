@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import JournalEditForm from "@/components/journal/journal-edit-form";
+import JournalEditFormLexend from "@/components/journal/journal-edit-form-lexend";
 
 interface JournalEditPageProps {
   params: { id: string };
@@ -51,12 +51,12 @@ export default function JournalEditPage({ params }: JournalEditPageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#f6f7f8] dark:bg-[#101a22] flex items-center justify-center" style={{ fontFamily: 'Lexend, sans-serif' }}>
         <div className="text-center">
-          <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-            <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-12 h-12 bg-white dark:bg-[#1e2a35] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+            <div className="w-5 h-5 border-2 border-[#2b9dee] border-t-transparent rounded-full animate-spin"></div>
           </div>
-          <p className="text-slate-600">Memuat jurnal...</p>
+          <p className="text-slate-600 dark:text-slate-400">Loading journal...</p>
         </div>
       </div>
     );
@@ -65,7 +65,7 @@ export default function JournalEditPage({ params }: JournalEditPageProps) {
   if (!journal || !user) return null;
 
   return (
-    <JournalEditForm
+    <JournalEditFormLexend
       userId={user.id}
       existingJournal={journal}
     />

@@ -4,27 +4,23 @@ import { Metadata } from 'next';
 import { 
   Award, 
   Trophy, 
-  Star, 
-  Crown, 
-  Target, 
-  Calendar,
-  TrendingUp,
+  Star,
   BookOpen,
-  Heart,
   Zap,
   CheckCircle,
   Lock,
-  Sparkles,
-  Gift,
-  ArrowLeft
+  ArrowLeft,
+  Flame,
+  TrendingUp,
+  Sparkles
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { format } from "date-fns";
+import { id as localeId } from "date-fns/locale";
 
 export const metadata: Metadata = {
-  title: 'Garden of Achievements | AtmosFeel',
-  description: 'Your collection of wellness achievements and milestones',
+  title: 'Journey & Achievements | Jurnalin',
+  description: 'Your mindful consistency and wellness achievements',
 };
 
 export default async function GardenPage() {
@@ -111,522 +107,262 @@ export default async function GardenPage() {
     const name = achievementName.toLowerCase();
     let IconComponent;
     let colorClass = isEarned ? 'text-amber-500' : 'text-slate-400';
-    let bgColorClass = isEarned ? 'bg-amber-50' : 'bg-slate-50';
+    let bgColorClass = isEarned ? 'bg-amber-50 dark:bg-amber-900/20' : 'bg-slate-50 dark:bg-slate-700';
 
     if (name.includes('jurnal') || name.includes('menulis')) {
       IconComponent = BookOpen;
       if (isEarned) {
-        colorClass = 'text-blue-500';
-        bgColorClass = 'bg-blue-50';
+        colorClass = 'text-blue-500 dark:text-blue-400';
+        bgColorClass = 'bg-blue-50 dark:bg-blue-900/20';
       }
     } else if (name.includes('konsisten') || name.includes('berturut')) {
       IconComponent = Zap;
       if (isEarned) {
-        colorClass = 'text-orange-500';
-        bgColorClass = 'bg-orange-50';
+        colorClass = 'text-orange-500 dark:text-orange-400';
+        bgColorClass = 'bg-orange-50 dark:bg-orange-900/20';
       }
     } else if (name.includes('milestone') || name.includes('pencapaian')) {
       IconComponent = Trophy;
       if (isEarned) {
-        colorClass = 'text-purple-500';
-        bgColorClass = 'bg-purple-50';
+        colorClass = 'text-purple-500 dark:text-purple-400';
+        bgColorClass = 'bg-purple-50 dark:bg-purple-900/20';
       }
     } else {
       IconComponent = Star;
       if (isEarned) {
-        colorClass = 'text-emerald-500';
-        bgColorClass = 'bg-emerald-50';
+        colorClass = 'text-emerald-500 dark:text-emerald-400';
+        bgColorClass = 'bg-emerald-50 dark:bg-emerald-900/20';
       }
     }
 
     return { IconComponent, colorClass, bgColorClass };
   };
 
-  // Calculate progress for some achievements
+  // Calculate progress for achievements
   const getAchievementProgress = (achievement: any) => {
     const name = achievement.name.toLowerCase();
     const description = achievement.description.toLowerCase();
 
     // Jurnal writing achievements
     if (name.includes('jurnal') || description.includes('jurnal')) {
-      if (description.includes('10')) return Math.min((totalJournals / 10) * 100, 100);
-      if (description.includes('25')) return Math.min((totalJournals / 25) * 100, 100);
-      if (description.includes('50')) return Math.min((totalJournals / 50) * 100, 100);
-      if (description.includes('100')) return Math.min((totalJournals / 100) * 100, 100);
+      if (description.includes('10')) return { current: totalJournals, target: 10, percentage: Math.min((totalJournals / 10) * 100, 100) };
+      if (description.includes('25')) return { current: totalJournals, target: 25, percentage: Math.min((totalJournals / 25) * 100, 100) };
+      if (description.includes('50')) return { current: totalJournals, target: 50, percentage: Math.min((totalJournals / 50) * 100, 100) };
+      if (description.includes('100')) return { current: totalJournals, target: 100, percentage: Math.min((totalJournals / 100) * 100, 100) };
     }
 
     // Streak achievements
     if (name.includes('berturut') || description.includes('berturut')) {
-      if (description.includes('7')) return Math.min((currentStreak / 7) * 100, 100);
-      if (description.includes('14')) return Math.min((currentStreak / 14) * 100, 100);
-      if (description.includes('30')) return Math.min((currentStreak / 30) * 100, 100);
+      if (description.includes('7')) return { current: currentStreak, target: 7, percentage: Math.min((currentStreak / 7) * 100, 100) };
+      if (description.includes('14')) return { current: currentStreak, target: 14, percentage: Math.min((currentStreak / 14) * 100, 100) };
+      if (description.includes('30')) return { current: currentStreak, target: 30, percentage: Math.min((currentStreak / 30) * 100, 100) };
     }
 
-    return 0;
+    return { current: 0, target: 0, percentage: 0 };
   };
 
   const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
 
-  // Recent achievements (last 5)
-  const recentAchievements = userAchievements?.slice(0, 5) || [];
+  // Calculate level based on points
+  const getLevel = (points: number) => {
+    if (points >= 1000) return { level: 5, name: "Mindful Master", next: 2000 };
+    if (points >= 750) return { level: 4, name: "Rooted Sapling", next: 1000 };
+    if (points >= 500) return { level: 3, name: "Growing Seed", next: 750 };
+    if (points >= 250) return { level: 2, name: "Budding Sprout", next: 500 };
+    return { level: 1, name: "New Seedling", next: 250 };
+  };
+
+  const currentLevel = getLevel(totalPoints);
+  const levelProgress = ((totalPoints % currentLevel.next) / currentLevel.next) * 100;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-8 py-12">
+    <div style={{ fontFamily: 'Lexend, sans-serif' }} className="min-h-screen bg-[#f8fafc] dark:bg-[#101a22]">
+      <div className="max-w-[960px] mx-auto px-4 md:px-10 py-8">
         
-        {/* Header */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-light text-slate-800 mb-2">
-                Garden of Achievements
-              </h1>
-              <p className="text-lg text-slate-500">
-                Koleksi pencapaian dan milestone wellness journey Anda
-              </p>
-            </div>
-            <Button 
-              asChild 
-              variant="outline"
-              className="rounded-2xl px-6 py-3 border-slate-200 hover:bg-slate-50"
-            >
-              <Link href="/protected" className="flex items-center gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Kembali ke Dashboard
-              </Link>
-            </Button>
-          </div>
+        {/* Back Button */}
+        <div className="mb-6">
+          <Link
+            href="/protected"
+            className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-[#2b9dee] dark:hover:text-[#2b9dee] transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span className="text-sm font-medium">Back</span>
+          </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          
-          {/* Left Column - Progress Overview */}
-          <div className="lg:col-span-1 space-y-6">
-            
-            {/* Achievement Summary */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+        {/* Page Heading */}
+        <div className="flex flex-col gap-3 mb-8">
+          <h1 className="text-slate-900 dark:text-white text-3xl md:text-4xl font-light tracking-[-0.033em]">
+            Your Mindful Consistency
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 text-base font-light leading-normal max-w-2xl">
+            See how your reflection practice is growing alongside the seasons. A gentle record of your journey inward.
+          </p>
+        </div>
+
+        {/* Hero Section: Streak */}
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row gap-6 rounded-2xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+            <div className="w-full md:w-1/2 bg-gradient-to-br from-sky-50 to-indigo-50 dark:from-slate-700 dark:to-slate-800 min-h-[240px] flex items-center justify-center p-8">
               <div className="text-center">
-                <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Trophy className="h-10 w-10 text-amber-500" />
-                </div>
-                <h3 className="text-xl font-medium text-slate-800 mb-2">{displayName}</h3>
-                <p className="text-sm text-slate-500 mb-4">Achievement Hunter</p>
-                
-                <div className="space-y-4">
-                  <div className="text-center">
-                    <div className="text-3xl font-light text-slate-800 mb-1">
-                      {totalEarned}
-                    </div>
-                    <div className="text-sm text-slate-500">dari {totalAvailable} achievement</div>
-                    <div className="w-full bg-slate-100 rounded-full h-2 mt-2">
-                      <div 
-                        className="bg-amber-400 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${(totalEarned / totalAvailable) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
+                <div className="text-6xl mb-4">🌱</div>
+                <p className="text-slate-600 dark:text-slate-300 text-sm">Keep growing</p>
               </div>
             </div>
-
-            {/* Progress Stats */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-              <h4 className="font-medium text-slate-800 mb-4">Progress Saat Ini</h4>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-blue-500" />
-                    <span className="text-sm text-slate-600">Total Jurnal</span>
-                  </div>
-                  <span className="font-medium text-slate-800">{totalJournals}</span>
+            <div className="flex flex-col justify-center gap-6 p-6 md:p-8 w-full md:w-1/2">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-[#2b9dee]">
+                  <Flame className="h-5 w-5" />
+                  <span className="text-sm font-bold uppercase tracking-wider">Current Streak</span>
                 </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-orange-500" />
-                    <span className="text-sm text-slate-600">Streak Saat Ini</span>
-                  </div>
-                  <span className="font-medium text-slate-800">{currentStreak} hari</span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Award className="h-4 w-4 text-amber-500" />
-                    <span className="text-sm text-slate-600">Total Poin</span>
-                  </div>
-                  <span className="font-medium text-slate-800">{totalPoints}</span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-purple-500" />
-                    <span className="text-sm text-slate-600">Minggu Ini</span>
-                  </div>
-                  <span className="font-medium text-slate-800">{weeklyJournalCount} jurnal</span>
-                </div>
+                <h2 className="text-slate-900 dark:text-white text-4xl md:text-5xl font-light tracking-[-0.033em]">
+                  {currentStreak} Days
+                </h2>
+                <p className="text-slate-500 dark:text-slate-400 text-base md:text-lg font-light">
+                  {currentStreak === 0 
+                    ? "Start your journey today. Every great story begins with a single step."
+                    : currentStreak < 7
+                    ? "You are flowing well. Your practice is taking root like a sapling in spring."
+                    : "Excellent consistency! You're building a strong foundation for mindfulness."}
+                </p>
               </div>
-            </div>
-
-            {/* Recent Achievements */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-              <h4 className="font-medium text-slate-800 mb-4">Pencapaian Terbaru</h4>
-              
-              {recentAchievements.length > 0 ? (
-                <div className="space-y-3">
-                  {recentAchievements.map((achievement) => {
-                    const { IconComponent, colorClass, bgColorClass } = getAchievementIcon(achievement.achievements.name, true);
-                    
-                    return (
-                      <div key={achievement.id} className="flex items-center gap-3 p-3 bg-amber-50 rounded-2xl">
-                        <div className={`w-10 h-10 ${bgColorClass} rounded-xl flex items-center justify-center`}>
-                          <IconComponent className={`h-5 w-5 ${colorClass}`} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-slate-800 text-sm truncate">
-                            {achievement.achievements.name}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            +{achievement.achievements.points_reward} poin
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Award className="h-8 w-8 text-slate-300 mx-auto mb-2" />
-                  <p className="text-sm text-slate-500">Belum ada pencapaian</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right Column - Achievement Categories */}
-          <div className="lg:col-span-3 space-y-8">
-            
-            {/* Quick Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="bg-white rounded-3xl p-6 text-center shadow-sm border border-slate-100">
-                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <BookOpen className="h-6 w-6 text-blue-500" />
-                </div>
-                <div className="text-2xl font-light text-slate-800 mb-2">
-                  {categorizedAchievements.writing.filter(a => earnedAchievementIds.has(a.id)).length}
-                </div>
-                <div className="text-sm text-slate-500 font-medium">Menulis</div>
-              </div>
-
-              <div className="bg-white rounded-3xl p-6 text-center shadow-sm border border-slate-100">
-                <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Zap className="h-6 w-6 text-orange-500" />
-                </div>
-                <div className="text-2xl font-light text-slate-800 mb-2">
-                  {categorizedAchievements.streak.filter(a => earnedAchievementIds.has(a.id)).length}
-                </div>
-                <div className="text-sm text-slate-500 font-medium">Konsistensi</div>
-              </div>
-
-              <div className="bg-white rounded-3xl p-6 text-center shadow-sm border border-slate-100">
-                <div className="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Trophy className="h-6 w-6 text-purple-500" />
-                </div>
-                <div className="text-2xl font-light text-slate-800 mb-2">
-                  {categorizedAchievements.milestone.filter(a => earnedAchievementIds.has(a.id)).length}
-                </div>
-                <div className="text-sm text-slate-500 font-medium">Milestone</div>
-              </div>
-
-              <div className="bg-white rounded-3xl p-6 text-center shadow-sm border border-slate-100">
-                <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Star className="h-6 w-6 text-emerald-500" />
-                </div>
-                <div className="text-2xl font-light text-slate-800 mb-2">
-                  {categorizedAchievements.special.filter(a => earnedAchievementIds.has(a.id)).length}
-                </div>
-                <div className="text-sm text-slate-500 font-medium">Spesial</div>
-              </div>
-            </div>
-
-            {/* Achievement Categories */}
-            <div className="space-y-8">
-              
-              {/* Writing Achievements */}
-              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-blue-50 rounded-2xl flex items-center justify-center">
-                    <BookOpen className="h-6 w-6 text-blue-500" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-medium text-slate-800">Pencapaian Menulis</h3>
-                    <p className="text-sm text-slate-500">Achievement yang berkaitan dengan menulis jurnal</p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {categorizedAchievements.writing.map((achievement) => {
-                    const isEarned = earnedAchievementIds.has(achievement.id);
-                    const { IconComponent, colorClass, bgColorClass } = getAchievementIcon(achievement.name, isEarned);
-                    const progress = getAchievementProgress(achievement);
-                    
-                    return (
-                      <div 
-                        key={achievement.id}
-                        className={`
-                          relative p-6 rounded-2xl border transition-all duration-200
-                          ${isEarned 
-                            ? 'bg-blue-50 border-blue-200 shadow-sm' 
-                            : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-                          }
-                        `}
-                      >
-                        {isEarned && (
-                          <div className="absolute top-3 right-3">
-                            <CheckCircle className="h-5 w-5 text-blue-500" />
-                          </div>
-                        )}
-                        
-                        <div className="text-center">
-                          <div className={`w-16 h-16 ${bgColorClass} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-                            <IconComponent className={`h-8 w-8 ${colorClass}`} />
-                          </div>
-                          
-                          <h4 className={`font-medium mb-2 ${isEarned ? 'text-slate-800' : 'text-slate-600'}`}>
-                            {achievement.name}
-                          </h4>
-                          
-                          <p className={`text-sm mb-4 leading-relaxed ${isEarned ? 'text-slate-600' : 'text-slate-500'}`}>
-                            {achievement.description}
-                          </p>
-                          
-                          <div className="flex items-center justify-center gap-2 mb-4">
-                            <Award className={`h-4 w-4 ${isEarned ? 'text-amber-500' : 'text-slate-400'}`} />
-                            <span className={`text-sm font-medium ${isEarned ? 'text-amber-600' : 'text-slate-500'}`}>
-                              {achievement.points_reward} poin
-                            </span>
-                          </div>
-                          
-                          {!isEarned && progress > 0 && (
-                            <div className="space-y-2">
-                              <div className="w-full bg-slate-200 rounded-full h-2">
-                                <div 
-                                  className="bg-blue-400 h-2 rounded-full transition-all duration-500"
-                                  style={{ width: `${progress}%` }}
-                                />
-                              </div>
-                              <p className="text-xs text-slate-500">
-                                {progress.toFixed(0)}% selesai
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Streak Achievements */}
-              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-orange-50 rounded-2xl flex items-center justify-center">
-                    <Zap className="h-6 w-6 text-orange-500" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-medium text-slate-800">Pencapaian Konsistensi</h3>
-                    <p className="text-sm text-slate-500">Achievement untuk konsistensi menulis berturut-turut</p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {categorizedAchievements.streak.map((achievement) => {
-                    const isEarned = earnedAchievementIds.has(achievement.id);
-                    const { IconComponent, colorClass, bgColorClass } = getAchievementIcon(achievement.name, isEarned);
-                    const progress = getAchievementProgress(achievement);
-                    
-                    return (
-                      <div 
-                        key={achievement.id}
-                        className={`
-                          relative p-6 rounded-2xl border transition-all duration-200
-                          ${isEarned 
-                            ? 'bg-orange-50 border-orange-200 shadow-sm' 
-                            : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-                          }
-                        `}
-                      >
-                        {isEarned && (
-                          <div className="absolute top-3 right-3">
-                            <CheckCircle className="h-5 w-5 text-orange-500" />
-                          </div>
-                        )}
-                        
-                        <div className="text-center">
-                          <div className={`w-16 h-16 ${bgColorClass} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-                            <IconComponent className={`h-8 w-8 ${colorClass}`} />
-                          </div>
-                          
-                          <h4 className={`font-medium mb-2 ${isEarned ? 'text-slate-800' : 'text-slate-600'}`}>
-                            {achievement.name}
-                          </h4>
-                          
-                          <p className={`text-sm mb-4 leading-relaxed ${isEarned ? 'text-slate-600' : 'text-slate-500'}`}>
-                            {achievement.description}
-                          </p>
-                          
-                          <div className="flex items-center justify-center gap-2 mb-4">
-                            <Award className={`h-4 w-4 ${isEarned ? 'text-amber-500' : 'text-slate-400'}`} />
-                            <span className={`text-sm font-medium ${isEarned ? 'text-amber-600' : 'text-slate-500'}`}>
-                              {achievement.points_reward} poin
-                            </span>
-                          </div>
-                          
-                          {!isEarned && progress > 0 && (
-                            <div className="space-y-2">
-                              <div className="w-full bg-slate-200 rounded-full h-2">
-                                <div 
-                                  className="bg-orange-400 h-2 rounded-full transition-all duration-500"
-                                  style={{ width: `${progress}%` }}
-                                />
-                              </div>
-                              <p className="text-xs text-slate-500">
-                                {progress.toFixed(0)}% selesai
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Milestone Achievements */}
-              {categorizedAchievements.milestone.length > 0 && (
-                <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 bg-purple-50 rounded-2xl flex items-center justify-center">
-                      <Trophy className="h-6 w-6 text-purple-500" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-medium text-slate-800">Milestone Pencapaian</h3>
-                      <p className="text-sm text-slate-500">Pencapaian besar dalam perjalanan wellness Anda</p>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {categorizedAchievements.milestone.map((achievement) => {
-                      const isEarned = earnedAchievementIds.has(achievement.id);
-                      const { IconComponent, colorClass, bgColorClass } = getAchievementIcon(achievement.name, isEarned);
-                      
-                      return (
-                        <div 
-                          key={achievement.id}
-                          className={`
-                            relative p-6 rounded-2xl border transition-all duration-200
-                            ${isEarned 
-                              ? 'bg-purple-50 border-purple-200 shadow-sm' 
-                              : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-                            }
-                          `}
-                        >
-                          {isEarned && (
-                            <div className="absolute top-3 right-3">
-                              <CheckCircle className="h-5 w-5 text-purple-500" />
-                            </div>
-                          )}
-                          
-                          <div className="text-center">
-                            <div className={`w-16 h-16 ${bgColorClass} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-                              <IconComponent className={`h-8 w-8 ${colorClass}`} />
-                            </div>
-                            
-                            <h4 className={`font-medium mb-2 ${isEarned ? 'text-slate-800' : 'text-slate-600'}`}>
-                              {achievement.name}
-                            </h4>
-                            
-                            <p className={`text-sm mb-4 leading-relaxed ${isEarned ? 'text-slate-600' : 'text-slate-500'}`}>
-                              {achievement.description}
-                            </p>
-                            
-                            <div className="flex items-center justify-center gap-2">
-                              <Award className={`h-4 w-4 ${isEarned ? 'text-amber-500' : 'text-slate-400'}`} />
-                              <span className={`text-sm font-medium ${isEarned ? 'text-amber-600' : 'text-slate-500'}`}>
-                                {achievement.points_reward} poin
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Special Achievements */}
-              {categorizedAchievements.special.length > 0 && (
-                <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 bg-emerald-50 rounded-2xl flex items-center justify-center">
-                      <Star className="h-6 w-6 text-emerald-500" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-medium text-slate-800">Pencapaian Spesial</h3>
-                      <p className="text-sm text-slate-500">Achievement unik dan spesial lainnya</p>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {categorizedAchievements.special.map((achievement) => {
-                      const isEarned = earnedAchievementIds.has(achievement.id);
-                      const { IconComponent, colorClass, bgColorClass } = getAchievementIcon(achievement.name, isEarned);
-                      
-                      return (
-                        <div 
-                          key={achievement.id}
-                          className={`
-                            relative p-6 rounded-2xl border transition-all duration-200
-                            ${isEarned 
-                              ? 'bg-emerald-50 border-emerald-200 shadow-sm' 
-                              : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-                            }
-                          `}
-                        >
-                          {isEarned && (
-                            <div className="absolute top-3 right-3">
-                              <CheckCircle className="h-5 w-5 text-emerald-500" />
-                            </div>
-                          )}
-                          
-                          <div className="text-center">
-                            <div className={`w-16 h-16 ${bgColorClass} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-                              <IconComponent className={`h-8 w-8 ${colorClass}`} />
-                            </div>
-                            
-                            <h4 className={`font-medium mb-2 ${isEarned ? 'text-slate-800' : 'text-slate-600'}`}>
-                              {achievement.name}
-                            </h4>
-                            
-                            <p className={`text-sm mb-4 leading-relaxed ${isEarned ? 'text-slate-600' : 'text-slate-500'}`}>
-                              {achievement.description}
-                            </p>
-                            
-                            <div className="flex items-center justify-center gap-2">
-                              <Award className={`h-4 w-4 ${isEarned ? 'text-amber-500' : 'text-slate-400'}`} />
-                              <span className={`text-sm font-medium ${isEarned ? 'text-amber-600' : 'text-slate-500'}`}>
-                                {achievement.points_reward} poin
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+              <Link
+                href="/protected/journal/new"
+                className="flex w-fit items-center justify-center gap-2 overflow-hidden rounded-xl h-12 px-6 bg-[#2b9dee] hover:bg-[#1e7ac7] text-white transition-all shadow-md shadow-[#2b9dee]/20"
+              >
+                <Sparkles className="h-5 w-5" />
+                <span className="text-base font-bold tracking-[0.015em]">Check In Today</span>
+              </Link>
             </div>
           </div>
         </div>
+
+        {/* Progress & Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* Progress Bar Column */}
+          <div className="md:col-span-3 flex flex-col gap-4 bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+            <div className="flex justify-between items-end">
+              <div className="flex flex-col gap-1">
+                <p className="text-slate-900 dark:text-white text-lg font-bold">Deepening Practice</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm">Level {currentLevel.level}: {currentLevel.name}</p>
+              </div>
+              <span className="text-[#2b9dee] font-bold text-sm bg-[#2b9dee]/10 px-3 py-1 rounded-full">
+                {currentLevel.next - totalPoints} points to go
+              </span>
+            </div>
+            <div className="relative h-4 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+              <div 
+                className="absolute h-full rounded-full bg-gradient-to-r from-sky-300 to-[#2b9dee] transition-all duration-1000 ease-out"
+                style={{ width: `${levelProgress}%` }}
+              ></div>
+            </div>
+            <p className="text-slate-400 dark:text-slate-500 text-xs text-right">
+              {totalPoints} / {currentLevel.next} Total Points
+            </p>
+          </div>
+
+          {/* Stats Card 1 */}
+          <div className="flex flex-col gap-3 rounded-2xl p-6 bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700">
+            <div className="size-10 rounded-full bg-sky-50 dark:bg-sky-900/30 flex items-center justify-center text-[#2b9dee] mb-2">
+              <BookOpen className="h-5 w-5" />
+            </div>
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider">Total Entries</p>
+            <p className="text-slate-900 dark:text-white text-3xl font-bold leading-tight">{totalJournals}</p>
+          </div>
+
+          {/* Stats Card 2 */}
+          <div className="flex flex-col gap-3 rounded-2xl p-6 bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700">
+            <div className="size-10 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-500 mb-2">
+              <Award className="h-5 w-5" />
+            </div>
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider">Reflection Points</p>
+            <p className="text-slate-900 dark:text-white text-3xl font-bold leading-tight">{totalPoints}</p>
+          </div>
+
+          {/* Environmental Insight Card */}
+          <div className="flex flex-col gap-3 rounded-2xl p-6 bg-emerald-50/50 dark:bg-emerald-900/10 shadow-sm border border-emerald-100 dark:border-emerald-900/30 relative overflow-hidden group">
+            <div className="absolute -right-4 -top-4 text-emerald-100 dark:text-emerald-900/20 opacity-50 group-hover:scale-110 transition-transform duration-500 text-[120px]">
+              ☁️
+            </div>
+            <div className="size-10 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-2 z-10">
+              <TrendingUp className="h-5 w-5" />
+            </div>
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider z-10">Achievements</p>
+            <p className="text-slate-900 dark:text-white text-lg font-bold leading-tight z-10">
+              {totalEarned} of {totalAvailable} unlocked
+            </p>
+          </div>
+        </div>
+
+        {/* Milestones Section */}
+        <div className="flex flex-col gap-6">
+          <div className="flex justify-between items-center">
+            <h3 className="text-slate-900 dark:text-white text-2xl font-bold">Milestones</h3>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {allAchievements?.slice(0, 8).map((achievement) => {
+              const isEarned = earnedAchievementIds.has(achievement.id);
+              const { IconComponent, colorClass, bgColorClass } = getAchievementIcon(achievement.name, isEarned);
+              const progress = getAchievementProgress(achievement);
+              const inProgress = !isEarned && progress.percentage > 0;
+
+              return (
+                <div
+                  key={achievement.id}
+                  className={`flex flex-col gap-4 rounded-2xl p-5 border shadow-sm transition-all ${
+                    isEarned
+                      ? 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:shadow-md'
+                      : inProgress
+                      ? 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 relative overflow-hidden'
+                      : 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800/50 opacity-70 grayscale'
+                  }`}
+                >
+                  {inProgress && (
+                    <div className="absolute bottom-0 left-0 h-1 bg-[#2b9dee]/20 w-full">
+                      <div className="h-full bg-[#2b9dee]" style={{ width: `${progress.percentage}%` }}></div>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between items-start">
+                    <div className={`size-12 rounded-full flex items-center justify-center ${bgColorClass}`}>
+                      <IconComponent className={`h-6 w-6 ${colorClass}`} />
+                    </div>
+                    {isEarned ? (
+                      <CheckCircle className="h-5 w-5 text-emerald-500" />
+                    ) : inProgress ? (
+                      <span className="text-xs font-bold text-[#2b9dee] bg-[#2b9dee]/10 px-2 py-1 rounded">
+                        {progress.current}/{progress.target}
+                      </span>
+                    ) : (
+                      <Lock className="h-5 w-5 text-slate-300 dark:text-slate-600" />
+                    )}
+                  </div>
+                  
+                  <div>
+                    <p className="text-slate-900 dark:text-white font-bold text-lg mb-1">
+                      {achievement.name}
+                    </p>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">
+                      {achievement.description}
+                    </p>
+                  </div>
+                  
+                  {isEarned && (
+                    <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-700">
+                      <span className="text-xs font-bold text-amber-500">
+                        +{achievement.points_reward} points earned
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Footer Spacer */}
+        <div className="h-20"></div>
       </div>
     </div>
   );

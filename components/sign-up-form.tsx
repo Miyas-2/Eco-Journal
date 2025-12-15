@@ -70,16 +70,16 @@ export function SignUpForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
+      <Card className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl">Sign up</CardTitle>
-          <CardDescription>Create a new account</CardDescription>
+          <CardTitle className="text-2xl font-bold text-slate-900 dark:text-white">Sign up</CardTitle>
+          <CardDescription className="text-slate-500 dark:text-slate-400">Create a new account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignUp}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="username" className="text-slate-700 dark:text-slate-200">Username</Label>
                 <Input
                   id="username"
                   type="text"
@@ -87,10 +87,11 @@ export function SignUpForm({
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  className="bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-slate-700 dark:text-slate-200">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -98,40 +99,43 @@ export function SignUpForm({
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white"
                 />
               </div>
               <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                </div>
+                <Label htmlFor="password" className="text-slate-700 dark:text-slate-200">Password</Label>
                 <Input
                   id="password"
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white"
                 />
               </div>
               <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="repeat-password">Repeat Password</Label>
-                </div>
+                <Label htmlFor="repeat-password" className="text-slate-700 dark:text-slate-200">Repeat Password</Label>
                 <Input
                   id="repeat-password"
                   type="password"
                   required
                   value={repeatPassword}
                   onChange={(e) => setRepeatPassword(e.target.value)}
+                  className="bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white"
                 />
               </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              {error && <p className="text-sm text-red-500 bg-red-50 dark:bg-red-900/30 rounded px-3 py-2">{error}</p>}
+              <Button
+                type="submit"
+                className="w-full bg-[#2b9dee] hover:bg-[#238ad1] text-white font-bold rounded-xl py-2 transition"
+                disabled={isLoading}
+              >
                 {isLoading ? "Creating an account..." : "Sign up"}
               </Button>
             </div>
-            <div className="mt-4 text-center text-sm">
+            <div className="mt-4 text-center text-sm text-slate-600 dark:text-slate-400">
               Already have an account?{" "}
-              <Link href="/auth/login" className="underline underline-offset-4">
+              <Link href="/auth/login" className="text-[#2b9dee] font-bold hover:underline">
                 Login
               </Link>
             </div>

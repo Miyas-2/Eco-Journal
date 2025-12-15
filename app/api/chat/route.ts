@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
     // Build optimized prompt with detailed AQI data
     const prompt = buildOptimizedPrompt(message, userAnalysis, journalContext, conversationContext);
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const result = await model.generateContent(prompt);
     const aiResponse = result.response.text();
 
@@ -242,6 +242,17 @@ INSTRUKSI PENTING:
 - Format contoh: "Berdasarkan ${userAnalysis?.summary?.total || 'N'} jurnal, kualitas udara terburuk pada [tanggal] dengan PM2.5: [nilai]μg/m³, EPA: [nilai]. Mood Anda [nilai] pada hari itu."
 - Gunakan threshold: PM2.5 >35μg/m³ = buruk, EPA ≥4 = tidak sehat
 - Berikan persentase dan pola spesifik dari data yang tersedia
+- JANGAN GUNAKAN formatting markdown seperti *, **, _, __, atau simbol formatting lainnya
+- Tulis dalam PLAIN TEXT saja, tanpa bold, italic, atau bullet points dengan simbol
+- Untuk membuat struktur, gunakan line breaks dan indentasi sederhana
+- Contoh format yang diinginkan:
+  "Anda terakhir kali menulis jurnal pada 15 Oktober 2025.
+  
+  Pada hari itu:
+  - Mood Anda: -0.75164, menunjukkan perasaan kesal.
+  - Kualitas Udara (AQI):
+    PM2.5: 100.64 μg/m³, yang berarti kualitas udara buruk (karena >35 μg/m³).
+    EPA Index: 4, yang berarti kualitas udara tidak sehat (karena ≥4)."
 
-Jawab dengan data faktual dan spesifik, bukan perkiraan umum.`;
+Jawab dengan data faktual dan spesifik dalam PLAIN TEXT, bukan perkiraan umum.`;
 }

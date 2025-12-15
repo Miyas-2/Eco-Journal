@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import Link from 'next/link';
 import { 
   MessageCircle, 
   Send, 
@@ -11,7 +12,8 @@ import {
   Loader2,
   X,
   Plus,
-  History
+  History,
+  Maximize2
 } from 'lucide-react';
 
 interface Message {
@@ -87,7 +89,6 @@ export default function SimpleChatBot() {
     setInput('');
     setIsLoading(true);
 
-    // Add user message to UI immediately
     const tempUserMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -111,12 +112,10 @@ export default function SimpleChatBot() {
       if (response.ok) {
         const data = await response.json();
         
-        // Update conversation ID if it's a new conversation
         if (!currentConversationId) {
           setCurrentConversationId(data.conversationId);
         }
 
-        // Add AI response
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
@@ -126,17 +125,12 @@ export default function SimpleChatBot() {
         };
 
         setMessages(prev => [...prev, aiMessage]);
-        
-        // Reload conversations to update the list
         loadConversations();
       } else {
-        console.error('Failed to send message');
-        // Remove the temporary user message on error
         setMessages(prev => prev.slice(0, -1));
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      // Remove the temporary user message on error
       setMessages(prev => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
@@ -169,7 +163,7 @@ export default function SimpleChatBot() {
       <div className="fixed bottom-6 right-6 z-50">
         <Button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg border-0"
+          className="w-14 h-14 rounded-full bg-[#2b9dee] hover:bg-[#2b9dee]/90 text-white shadow-lg shadow-[#2b9dee]/30 border-0 transition-all hover:scale-110"
         >
           {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
         </Button>
@@ -177,26 +171,36 @@ export default function SimpleChatBot() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 h-[600px] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col z-40">
+        <div style={{ fontFamily: 'Lexend, sans-serif' }} className="fixed bottom-24 right-6 w-[420px] h-[650px] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col z-40">
           
           {/* Header */}
-          <div className="p-4 border-b border-slate-200 rounded-t-2xl bg-slate-50">
+          <div className="p-5 border-b border-slate-200 dark:border-slate-800 rounded-t-2xl bg-white dark:bg-slate-900">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                  <Bot className="h-5 w-5 text-white" />
+                <div className="w-10 h-10 bg-[#2b9dee]/20 rounded-xl flex items-center justify-center">
+                  <Bot className="h-5 w-5 text-[#2b9dee]" />
                 </div>
                 <div>
-                  <h3 className="font-medium text-slate-800">AI Personal Guide</h3>
-                  <p className="text-xs text-slate-500">Wellness companion</p>
+                  <h3 className="font-semibold text-slate-800 dark:text-white">Jurnalin AI</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Your wellness companion</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <Link href="/protected/chat">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 w-9 p-0 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+                    title="Open Focus Mode"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </Button>
+                </Link>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowConversations(!showConversations)}
-                  className="h-8 w-8 p-0 rounded-lg"
+                  className="h-9 w-9 p-0 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
                   <History className="h-4 w-4" />
                 </Button>
@@ -204,7 +208,7 @@ export default function SimpleChatBot() {
                   variant="ghost"
                   size="sm"
                   onClick={startNewConversation}
-                  className="h-8 w-8 p-0 rounded-lg"
+                  className="h-9 w-9 p-0 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -215,10 +219,10 @@ export default function SimpleChatBot() {
           {/* Conversations List */}
           {showConversations ? (
             <div className="flex-1 overflow-y-auto p-4">
-              <h4 className="font-medium text-slate-800 mb-3">Percakapan Sebelumnya</h4>
+              <h4 className="font-semibold text-slate-800 dark:text-white mb-3 text-sm">Previous Conversations</h4>
               {conversations.length === 0 ? (
-                <p className="text-sm text-slate-500 text-center py-8">
-                  Belum ada percakapan
+                <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-12">
+                  No conversations yet
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -226,16 +230,16 @@ export default function SimpleChatBot() {
                     <button
                       key={conv.id}
                       onClick={() => loadMessages(conv.id)}
-                      className="w-full text-left p-3 rounded-xl hover:bg-slate-50 border border-slate-100 transition-colors"
+                      className="w-full text-left p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-700 transition-colors"
                     >
-                      <p className="font-medium text-sm text-slate-800 truncate">
+                      <p className="font-medium text-sm text-slate-800 dark:text-white truncate">
                         {conv.title}
                       </p>
-                      <p className="text-xs text-slate-500 truncate mt-1">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-1">
                         {conv.lastMessage}
                       </p>
                       <p className="text-xs text-slate-400 mt-1">
-                        {formatDate(conv.created_at)} • {conv.messageCount} pesan
+                        {formatDate(conv.created_at)} • {conv.messageCount} messages
                       </p>
                     </button>
                   ))}
@@ -245,18 +249,17 @@ export default function SimpleChatBot() {
           ) : (
             <>
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-[#f8fafc] dark:bg-[#0f1419]">
                 {messages.length === 0 ? (
                   <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Bot className="h-8 w-8 text-blue-500" />
+                    <div className="w-16 h-16 bg-[#2b9dee]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Bot className="h-8 w-8 text-[#2b9dee]" />
                     </div>
-                    <h4 className="font-medium text-slate-800 mb-2">
-                      Halo! Saya AI Personal Guide Anda
+                    <h4 className="font-semibold text-slate-800 dark:text-white mb-2">
+                      Hello! I'm your AI Guide
                     </h4>
-                    <p className="text-sm text-slate-500 leading-relaxed">
-                      Saya siap membantu dengan insight dari perjalanan wellness Anda. 
-                      Tanyakan apa saja tentang pola mood, emosi, atau minta saran!
+                    <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-4">
+                      I can help with insights from your wellness journey. Ask me anything about your mood patterns!
                     </p>
                   </div>
                 ) : (
@@ -269,47 +272,47 @@ export default function SimpleChatBot() {
                         }`}
                       >
                         {message.role === 'assistant' && (
-                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Bot className="h-4 w-4 text-white" />
+                          <div className="w-8 h-8 bg-[#2b9dee]/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Bot className="h-4 w-4 text-[#2b9dee]" />
                           </div>
                         )}
                         
-                        <div className={`max-w-[80%] ${
+                        <div className={`max-w-[75%] ${
                           message.role === 'user' 
-                            ? 'bg-blue-500 text-white' 
-                            : 'bg-slate-100 text-slate-800'
-                        } rounded-2xl px-4 py-3`}>
+                            ? 'bg-[#2b9dee] text-white' 
+                            : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-100 dark:border-slate-700'
+                        } rounded-2xl px-4 py-3 shadow-sm`}>
                           <p className="text-sm leading-relaxed whitespace-pre-line">
                             {message.content}
                           </p>
                           {message.context_used && message.context_used.length > 0 && (
                             <p className="text-xs mt-2 opacity-70">
-                              💡 Berdasarkan jurnal Anda
+                              💡 Based on your journals
                             </p>
                           )}
                           <p className={`text-xs mt-2 ${
-                            message.role === 'user' ? 'text-blue-100' : 'text-slate-500'
+                            message.role === 'user' ? 'text-blue-100' : 'text-slate-400'
                           }`}>
                             {formatTime(message.created_at)}
                           </p>
                         </div>
 
                         {message.role === 'user' && (
-                          <div className="w-8 h-8 bg-slate-300 rounded-full flex items-center justify-center flex-shrink-0">
-                            <User className="h-4 w-4 text-slate-600" />
+                          <div className="w-8 h-8 bg-slate-300 dark:bg-slate-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <User className="h-4 w-4 text-slate-600 dark:text-slate-300" />
                           </div>
                         )}
                       </div>
                     ))}
                     {isLoading && (
                       <div className="flex gap-3 justify-start">
-                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                          <Bot className="h-4 w-4 text-white" />
+                        <div className="w-8 h-8 bg-[#2b9dee]/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Bot className="h-4 w-4 text-[#2b9dee]" />
                         </div>
-                        <div className="bg-slate-100 rounded-2xl px-4 py-3">
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl px-4 py-3 border border-slate-100 dark:border-slate-700 shadow-sm">
                           <div className="flex items-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
-                            <span className="text-sm text-slate-500">Sedang berpikir...</span>
+                            <Loader2 className="h-4 w-4 animate-spin text-[#2b9dee]" />
+                            <span className="text-sm text-slate-500 dark:text-slate-400">Thinking...</span>
                           </div>
                         </div>
                       </div>
@@ -320,20 +323,20 @@ export default function SimpleChatBot() {
               </div>
 
               {/* Input */}
-              <div className="p-4 border-t border-slate-200">
+              <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
                 <div className="flex gap-2">
                   <Input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Tanyakan tentang wellness journey Anda..."
-                    className="flex-1 rounded-xl border-slate-200"
+                    placeholder="Ask about your wellness..."
+                    className="flex-1 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-[#2b9dee] focus:border-[#2b9dee]"
                     onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                     disabled={isLoading}
                   />
                   <Button
                     onClick={sendMessage}
                     disabled={!input.trim() || isLoading}
-                    className="rounded-xl bg-blue-500 hover:bg-blue-600 text-white px-4"
+                    className="rounded-xl bg-[#2b9dee] hover:bg-[#2b9dee]/90 text-white px-4 shadow-sm shadow-[#2b9dee]/30"
                   >
                     <Send className="h-4 w-4" />
                   </Button>
