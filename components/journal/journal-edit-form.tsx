@@ -340,7 +340,7 @@ export default function JournalEditForm({
               <Button variant="ghost" size="sm" asChild className="text-slate-600 hover:text-slate-800 rounded-xl">
                 <Link href={`/protected/journal/${existingJournal.id}`} className="flex items-center gap-2">
                   <ArrowLeft className="h-4 w-4" />
-                  Kembali
+                  Back
                 </Link>
               </Button>
               

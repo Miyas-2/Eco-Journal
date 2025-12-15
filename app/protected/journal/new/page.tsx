@@ -1,13 +1,13 @@
 'use client';
 
-import JournalForm from '@/components/journal/journal-form';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { useEffect, useState } from 'react';
-import { User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
+import { User } from '@supabase/supabase-js';
+import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { Loader2, ArrowLeft, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import JournalFormLexend from '@/components/journal/journal-form-lexend';
 
 export default function NewJournalPage() {
   const supabase = createClient();
@@ -31,41 +31,54 @@ export default function NewJournalPage() {
 
   if (loadingUser) {
     return (
-      <div className="min-h-screen bg-slate-50 flex justify-center items-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-4">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+      <>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        
+        <div className="min-h-screen bg-[#f8fafc] dark:bg-[#101a22] flex justify-center items-center" style={{ fontFamily: 'Lexend, sans-serif' }}>
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-[#2b9dee] mx-auto mb-4" />
+            <p className="text-slate-600 dark:text-slate-400 font-light">Memuat...</p>
           </div>
-          <p className="text-slate-600 font-medium">Memuat...</p>
         </div>
-      </div>
+      </>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center">
-        <div className="text-center max-w-md">
-          <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-            <span className="text-2xl">⚠️</span>
+      <>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        
+        <div className="min-h-screen bg-[#f8fafc] dark:bg-[#101a22] flex flex-col justify-center items-center" style={{ fontFamily: 'Lexend, sans-serif' }}>
+          <div className="text-center max-w-md">
+            <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <span className="text-2xl">⚠️</span>
+            </div>
+            <h2 className="text-xl font-medium text-slate-800 dark:text-slate-100 mb-3">Akses Terbatas</h2>
+            <p className="text-slate-500 dark:text-slate-400 mb-6 font-light">Anda harus login untuk membuat jurnal.</p>
+            <Button asChild className="bg-[#2b9dee] hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium">
+              <Link href="/auth/login">
+                Login di sini
+              </Link>
+            </Button>
           </div>
-          <h2 className="text-xl font-medium text-slate-800 mb-3">Akses Terbatas</h2>
-          <p className="text-slate-500 mb-6">Anda harus login untuk membuat jurnal.</p>
-          <Button asChild className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-2xl">
-            <Link href="/auth/login">
-              Login di sini
-            </Link>
-          </Button>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-
-      {/* Journal Form - Full Width */}
-      <JournalForm userId={user.id} />
-    </div>
+    <>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+      
+      <JournalFormLexend userId={user.id} />
+    </>
   );
 }

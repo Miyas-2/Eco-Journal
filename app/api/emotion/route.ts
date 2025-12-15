@@ -40,20 +40,21 @@ Berikan respons dalam format JSON berikut:
     "confidence": nilai confidence dalam persen (0-100)
   },
   "all_predictions": {
-    "Anger": nilai confidence dalam persen,
-    "Anxiety": nilai confidence dalam persen,
+    "joy": nilai confidence dalam persen,
+    "Trust": nilai confidence dalam persen,
     "Fear": nilai confidence dalam persen,
-    "Happy": nilai confidence dalam persen,
-    "Love": nilai confidence dalam persen,
-    "Sad": nilai confidence dalam persen,
-    "Surprise": nilai confidence dalam persen
+    "Suprise": nilai confidence dalam persen,
+    "Sadness": nilai confidence dalam persen,
+    "Dusgust": nilai confidence dalam persen,
+    "Anger": nilai confidence dalam persen,
+    "Anticipation": nilai confidence dalam persen
   }
 }
 
 Pastikan:
-1. Semua 7 emosi harus ada dalam all_predictions
+1. Semua 8 emosi harus ada dalam all_predictions
 2. Jumlah semua confidence dalam all_predictions mendekati 100
-3. top_prediction.label harus salah satu dari 7 emosi tersebut
+3. top_prediction.label harus salah satu dari 8 emosi tersebut
 4. top_prediction.confidence harus sama dengan nilai tertinggi di all_predictions
 5. Confidence adalah angka desimal (contoh: 72.5, bukan "72.5%")
 `;

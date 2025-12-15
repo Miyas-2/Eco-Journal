@@ -4,24 +4,16 @@ import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import {
-  Eye,
-  Edit,
+  ArrowLeft,
   Calendar as CalendarIcon,
   List,
   ChevronLeft,
   ChevronRight,
-  Filter as FilterIcon,
-  Search,
-  Plus,
-  Sparkles,
-  Heart,
-  Clock,
+  Cloud,
+  Droplets,
+  Wind,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import DeleteJournalButton from "@/components/journal/delete-journal-button";
-import JournalFilter from "@/components/journal/journal-filter";
 import { User } from "@supabase/supabase-js";
 import {
   format,
@@ -35,71 +27,39 @@ import {
   isSameDay,
   isSameMonth,
   isToday,
-  formatDistanceToNow,
 } from "date-fns";
-import { id } from "date-fns/locale";
+import { id as localeId } from "date-fns/locale";
 
 interface FilterOptions {
   emotionFilter: string;
-  dateFilter: string;
-  specificDate: Date | undefined;
-  startDate: Date | undefined;
-  endDate: Date | undefined;
 }
 
-type ViewMode = 'calendar' | 'list';
+type ViewMode = "calendar" | "list";
 
-// Emotion color mapping with background colors for calendar indicators
-const emotionColors = {
-  joy: { 
-    badge: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    dot: "bg-yellow-400"
-  },
-  trust: { 
-    badge: "bg-green-100 text-green-800 border-green-200",
-    dot: "bg-green-400"
-  },
-  fear: { 
-    badge: "bg-purple-100 text-purple-800 border-purple-200",
-    dot: "bg-purple-400"
-  },
-  surprise: { 
-    badge: "bg-indigo-100 text-indigo-800 border-indigo-200",
-    dot: "bg-indigo-400"
-  },
-  sadness: { 
-    badge: "bg-slate-100 text-slate-800 border-slate-200",
-    dot: "bg-slate-400"
-  },
-  disgust: { 
-    badge: "bg-green-100 text-green-800 border-green-200",
-    dot: "bg-green-500"
-  },
-  anger: { 
-    badge: "bg-red-100 text-red-800 border-red-200",
-    dot: "bg-red-400"
-  },
-  anticipation: { 
-    badge: "bg-cyan-100 text-cyan-800 border-cyan-200",
-    dot: "bg-cyan-400"
-  },
-  neutral: { 
-    badge: "bg-slate-100 text-slate-800 border-slate-200",
-    dot: "bg-slate-400"
-  },
+// Emotion color mapping
+const emotionColors: Record<string, { bg: string; text: string; hover: string }> = {
+  happy: { bg: "bg-yellow-50 dark:bg-yellow-900/20", text: "text-yellow-600 dark:text-yellow-300", hover: "hover:bg-yellow-100 dark:hover:bg-yellow-900/40" },
+  sad: { bg: "bg-blue-50 dark:bg-blue-900/20", text: "text-blue-600 dark:text-blue-300", hover: "hover:bg-blue-100 dark:hover:bg-blue-900/40" },
+  anger: { bg: "bg-red-50 dark:bg-red-900/20", text: "text-red-600 dark:text-red-300", hover: "hover:bg-red-100 dark:hover:bg-red-900/40" },
+  fear: { bg: "bg-purple-50 dark:bg-purple-900/20", text: "text-purple-600 dark:text-purple-300", hover: "hover:bg-purple-100 dark:hover:bg-purple-900/40" },
+  surprise: { bg: "bg-pink-50 dark:bg-pink-900/20", text: "text-pink-600 dark:text-pink-300", hover: "hover:bg-pink-100 dark:hover:bg-pink-900/40" },
+  love: { bg: "bg-rose-50 dark:bg-rose-900/20", text: "text-rose-600 dark:text-rose-300", hover: "hover:bg-rose-100 dark:hover:bg-rose-900/40" },
+  anxiety: { bg: "bg-indigo-50 dark:bg-indigo-900/20", text: "text-indigo-600 dark:text-indigo-300", hover: "hover:bg-indigo-100 dark:hover:bg-indigo-900/40" },
 };
 
-// Emotion emojis
-const emotionEmojis = {
-  joy: "😄",
-  trust: "🤗",
-  fear: "😨",
-  surprise: "😲",
-  sadness: "😢",
-  disgust: "🤢",
-  anger: "😠",
-  anticipation: "🤔",
-  neutral: "😐",
+const getEmotionStyle = (emotion: string) => {
+  const normalized = emotion?.toLowerCase();
+  return emotionColors[normalized] || { bg: "bg-slate-50 dark:bg-slate-700", text: "text-slate-600 dark:text-slate-300", hover: "hover:bg-slate-100 dark:hover:bg-slate-600" };
+};
+
+// Get AQI label helper
+const getAQILabel = (index: number | undefined) => {
+  if (!index) return null;
+  if (index === 1) return { label: "Good", color: "text-green-600 dark:text-green-400" };
+  if (index === 2) return { label: "Moderate", color: "text-yellow-600 dark:text-yellow-400" };
+  if (index === 3) return { label: "Unhealthy", color: "text-orange-600 dark:text-orange-400" };
+  if (index >= 4) return { label: "Hazardous", color: "text-red-600 dark:text-red-400" };
+  return null;
 };
 
 export default function JournalHistoryPage() {
@@ -107,17 +67,11 @@ export default function JournalHistoryPage() {
   const [journals, setJournals] = useState<any[]>([]);
   const [filteredJournals, setFilteredJournals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isFiltering, setIsFiltering] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('calendar');
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [currentFilters, setCurrentFilters] = useState<FilterOptions>({
-    emotionFilter: 'all',
-    dateFilter: 'all',
-    specificDate: undefined,
-    startDate: undefined,
-    endDate: undefined,
-  });
+  const [emotionCounts, setEmotionCounts] = useState<Record<string, number>>({});
+  const [activeEmotionFilter, setActiveEmotionFilter] = useState<string>("all");
 
   const router = useRouter();
   const supabase = createClient();
@@ -135,57 +89,59 @@ export default function JournalHistoryPage() {
 
       setUser(user);
 
+      // First, get all journals
       const { data: journalsData, error } = await supabase
         .from("journal_entries")
-        .select(
-          "id, title, content, created_at, emotion_analysis, emotion_source, emotion_id, emotions(name)"
-        )
+        .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (error) {
         console.error("Error fetching journals:", error);
-      } else {
-        setJournals(journalsData || []);
-        setFilteredJournals(journalsData || []);
+        setLoading(false);
+        return;
       }
+
+      // Then, get emotion data for journals that have emotion_id
+      const journalsWithEmotionId = journalsData?.filter(j => j.emotion_id) || [];
+      const emotionIds = [...new Set(journalsWithEmotionId.map(j => j.emotion_id))];
+      
+      let emotionsMap: Record<number, string> = {};
+      if (emotionIds.length > 0) {
+        const { data: emotionsData } = await supabase
+          .from("emotions")
+          .select("id, name")
+          .in("id", emotionIds);
+        
+        emotionsData?.forEach(emotion => {
+          emotionsMap[emotion.id] = emotion.name;
+        });
+      }
+
+      // Combine the data
+      const journalsWithEmotions = journalsData?.map(journal => ({
+        ...journal,
+        emotions: journal.emotion_id ? { name: emotionsMap[journal.emotion_id] } : null
+      })) || [];
+
+      setJournals(journalsWithEmotions);
+      setFilteredJournals(journalsWithEmotions);
+      
+      // Calculate emotion counts
+      const counts: Record<string, number> = {};
+      journalsWithEmotions.forEach((journal) => {
+        const emotion = getJournalEmotion(journal);
+        if (emotion) {
+          counts[emotion] = (counts[emotion] || 0) + 1;
+        }
+      });
+      setEmotionCounts(counts);
 
       setLoading(false);
     };
 
     loadData();
   }, []);
-
-  // Filter function
-  const applyFilters = useCallback((filters: FilterOptions) => {
-    setIsFiltering(true);
-    setCurrentFilters(filters);
-    let filtered = [...journals];
-
-    // Emotion filter
-    if (filters.emotionFilter !== "all") {
-      if (filters.emotionFilter === "ai") {
-        filtered = filtered.filter(journal => journal.emotion_source === "ai");
-      } else if (filters.emotionFilter === "manual") {
-        filtered = filtered.filter(journal => journal.emotion_source === "manual");
-      } else {
-        filtered = filtered.filter(journal => {
-          const emotion = getJournalEmotion(journal);
-          return emotion?.toLowerCase() === filters.emotionFilter;
-        });
-      }
-    }
-
-    // Date filter
-    if (selectedDate) {
-      filtered = filtered.filter(journal =>
-        isSameDay(new Date(journal.created_at), selectedDate)
-      );
-    }
-
-    setFilteredJournals(filtered);
-    setIsFiltering(false);
-  }, [journals, selectedDate]);
 
   // Get emotion from journal
   const getJournalEmotion = (journal: any) => {
@@ -197,22 +153,20 @@ export default function JournalHistoryPage() {
     return null;
   };
 
-  // Get emotion color class
-  const getEmotionColorClass = (emotion: string) => {
-    const normalizedEmotion = emotion?.toLowerCase();
-    return emotionColors[normalizedEmotion as keyof typeof emotionColors]?.badge || emotionColors.neutral.badge;
-  };
-
-  // Get emotion dot color class
-  const getEmotionDotClass = (emotion: string) => {
-    const normalizedEmotion = emotion?.toLowerCase();
-    return emotionColors[normalizedEmotion as keyof typeof emotionColors]?.dot || emotionColors.neutral.dot;
-  };
-
-  // Get emotion emoji
-  const getEmotionEmoji = (emotion: string) => {
-    const normalizedEmotion = emotion?.toLowerCase();
-    return emotionEmojis[normalizedEmotion as keyof typeof emotionEmojis] || "📝";
+  // Filter journals by emotion
+  const handleEmotionFilter = (emotion: string) => {
+    setActiveEmotionFilter(emotion);
+    setSelectedDate(null); // Clear date filter when changing emotion filter
+    
+    if (emotion === "all") {
+      setFilteredJournals(journals);
+    } else {
+      const filtered = journals.filter(journal => {
+        const journalEmotion = getJournalEmotion(journal);
+        return journalEmotion?.toLowerCase() === emotion.toLowerCase();
+      });
+      setFilteredJournals(filtered);
+    }
   };
 
   // Calendar logic
@@ -228,24 +182,17 @@ export default function JournalHistoryPage() {
     day = addDays(day, 1);
   }
 
-  // Get journals for a specific date (considering filters)
+  // Get journals for a specific date
   const getJournalsForDate = (date: Date) => {
     let dayJournals = journals.filter(journal =>
       isSameDay(new Date(journal.created_at), date)
     );
 
-    // Apply emotion filter to calendar view
-    if (currentFilters.emotionFilter !== "all") {
-      if (currentFilters.emotionFilter === "ai") {
-        dayJournals = dayJournals.filter(journal => journal.emotion_source === "ai");
-      } else if (currentFilters.emotionFilter === "manual") {
-        dayJournals = dayJournals.filter(journal => journal.emotion_source === "manual");
-      } else {
-        dayJournals = dayJournals.filter(journal => {
-          const emotion = getJournalEmotion(journal);
-          return emotion?.toLowerCase() === currentFilters.emotionFilter;
-        });
-      }
+    if (activeEmotionFilter !== "all") {
+      dayJournals = dayJournals.filter(journal => {
+        const emotion = getJournalEmotion(journal);
+        return emotion?.toLowerCase() === activeEmotionFilter.toLowerCase();
+      });
     }
 
     return dayJournals;
@@ -253,19 +200,31 @@ export default function JournalHistoryPage() {
 
   // Handle date selection
   const handleDateClick = (date: Date) => {
-    setSelectedDate(isSameDay(date, selectedDate || new Date()) ? null : date);
+    const journalsOnDate = getJournalsForDate(date);
+    if (journalsOnDate.length > 0) {
+      if (selectedDate && isSameDay(date, selectedDate)) {
+        setSelectedDate(null);
+        // Reapply emotion filter
+        if (activeEmotionFilter !== "all") {
+          handleEmotionFilter(activeEmotionFilter);
+        } else {
+          setFilteredJournals(journals);
+        }
+      } else {
+        setSelectedDate(date);
+        setFilteredJournals(journalsOnDate);
+      }
+    }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50">
-        <div className="max-w-6xl mx-auto px-6 py-8">
+      <div style={{ fontFamily: 'Lexend, sans-serif' }} className="min-h-screen bg-[#f8fafc] dark:bg-[#101a22]">
+        <div className="max-w-[1200px] mx-auto px-4 py-8 md:px-10 lg:px-20 xl:px-40">
           <div className="flex justify-center items-center py-20">
             <div className="text-center">
-              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-200">
-                <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-              </div>
-              <p className="text-slate-600">Memuat riwayat jurnal...</p>
+              <div className="w-12 h-12 border-4 border-[#2b9dee] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-slate-600 dark:text-slate-400 font-light">Memuat jurnal Anda...</p>
             </div>
           </div>
         </div>
@@ -275,364 +234,303 @@ export default function JournalHistoryPage() {
 
   if (!user) return null;
 
-  const displayedJournals = selectedDate 
-    ? journals.filter(journal => isSameDay(new Date(journal.created_at), selectedDate))
+  const displayedJournals = viewMode === "calendar" && selectedDate 
+    ? filteredJournals.filter(journal => isSameDay(new Date(journal.created_at), selectedDate))
     : filteredJournals;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-medium text-slate-800 mb-2">
-                Riwayat Jurnal
-              </h1>
-              <p className="text-slate-600">
-                Jelajahi perjalanan emosi dan refleksi Anda
-              </p>
-            </div>
-            
-            <Button
-              asChild
-              className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl h-10 px-4"
-            >
-              <Link href="/protected/journal/new" className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Tulis Jurnal
-              </Link>
-            </Button>
-          </div>
+    <div style={{ fontFamily: 'Lexend, sans-serif' }} className="min-h-screen bg-[#f8fafc] dark:bg-[#101a22]">
+      <main className="flex-1 w-full px-4 py-8 md:px-10 lg:px-20 xl:px-40 flex justify-center">
+        <div className="max-w-[1200px] w-full flex flex-col gap-8">
+          
+          {/* Back Button */}
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-[#2b9dee] dark:hover:text-[#2b9dee] transition-colors w-fit"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span className="text-sm font-medium">Kembali</span>
+          </button>
 
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="bg-white rounded-2xl p-4 border border-slate-200">
-              <div className="text-2xl font-medium text-slate-800">{journals.length}</div>
-              <div className="text-sm text-slate-600">Total Jurnal</div>
-            </div>
-            
-            <div className="bg-white rounded-2xl p-4 border border-slate-200">
-              <div className="text-2xl font-medium text-slate-800">
-                {new Set(journals.map(j => format(new Date(j.created_at), 'yyyy-MM'))).size}
-              </div>
-              <div className="text-sm text-slate-600">Bulan Aktif</div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-4 border border-slate-200">
-              <div className="text-2xl font-medium text-slate-800">
-                {displayedJournals.length}
-              </div>
-              <div className="text-sm text-slate-600">
-                {selectedDate ? 'Jurnal Hari Ini' : 'Ditampilkan'}
-              </div>
-            </div>
-          </div>
-
-            {/* View Toggle & Controls */}
-            <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 bg-white rounded-2xl p-1 border border-slate-200">
-              <Button
-              variant={viewMode === 'calendar' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('calendar')}
-              className={`rounded-xl h-8 px-3 ${
-                viewMode === 'calendar' 
-                ? 'bg-blue-500 text-white hover:bg-blue-600' 
-                : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50'
-              }`}
-              >
-              <CalendarIcon className="h-4 w-4 mr-2" />
-              Kalender
-              </Button>
-              <Button
-              variant={viewMode === 'list' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('list')}
-              className={`rounded-xl h-8 px-3 ${
-                viewMode === 'list' 
-                ? 'bg-blue-500 text-white hover:bg-blue-600' 
-                : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50'
-              }`}
-              >
-              <List className="h-4 w-4 mr-2" />
-              Daftar
-              </Button>
-            </div>
-
-            {/* Month Navigation */}
-            {viewMode === 'calendar' && (
-              <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-                className="h-8 w-8 p-0 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              
-              <h2 className="text-lg font-medium text-slate-800 min-w-[140px] text-center">
-                {format(currentDate, 'MMMM yyyy', { locale: id })}
-              </h2>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-                className="h-8 w-8 p-0 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              </div>
-            )}
-            </div>
-        </div>
-
-        {/* Filter Section */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <FilterIcon className="h-4 w-4 text-slate-600" />
-            <span className="text-sm font-medium text-slate-700">Filter Jurnal</span>
-            {selectedDate && (
-              <Badge variant="outline" className="ml-auto">
-                {format(selectedDate, 'dd MMM yyyy', { locale: id })}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedDate(null)}
-                  className="h-4 w-4 p-0 ml-2 hover:bg-transparent"
-                >
-                  ×
-                </Button>
-              </Badge>
-            )}
-            {currentFilters.emotionFilter !== 'all' && (
-              <Badge variant="outline" className="ml-auto">
-                Filter: {currentFilters.emotionFilter}
-              </Badge>
-            )}
-          </div>
-          <JournalFilter onFilterChange={applyFilters} isLoading={isFiltering} />
-        </div>
-
-        {/* Content */}
-        {viewMode === 'calendar' ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6">
-            {/* Calendar Header */}
-            <div className="grid grid-cols-7 gap-2 mb-4">
-              {['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map(day => (
-                <div key={day} className="text-center text-sm font-medium text-slate-600 py-2">
-                  {day}
+          {/* Sticky Header */}
+          <div className="sticky top-0 z-10 bg-[#f8fafc] dark:bg-[#101a22] pb-4 -mx-4 px-4 md:-mx-10 md:px-10 lg:-mx-20 lg:px-20 xl:-mx-40 xl:px-40">
+            <div className="max-w-[1200px] mx-auto">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                <div className="flex flex-col gap-2">
+                  <h1 className="text-3xl md:text-4xl font-light text-slate-900 dark:text-white tracking-[-0.033em]">
+                    Arsip Jurnal
+                  </h1>
+                  <p className="text-slate-500 dark:text-slate-400 text-lg font-light leading-relaxed">
+                    Jelajahi dan temukan kembali momen-momen berharga dalam perjalanan Anda
+                  </p>
                 </div>
-              ))}
-            </div>
 
-            {/* Calendar Grid */}
-            <div className="grid grid-cols-7 gap-2">
-              {calendarDays.map((day, index) => {
-                const dayJournals = getJournalsForDate(day);
-                const isCurrentMonth = isSameMonth(day, currentDate);
-                const isSelected = selectedDate && isSameDay(day, selectedDate);
-                const hasJournals = dayJournals.length > 0;
-
-                return (
+                {/* View Toggle */}
+                <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
                   <button
-                    key={index}
-                    onClick={() => handleDateClick(day)}
-                    className={`
-                      relative h-16 rounded-xl transition-all duration-200 text-sm p-1
-                      ${isCurrentMonth ? 'text-slate-700' : 'text-slate-300'}
-                      ${isSelected ? 'bg-blue-500 text-white' : ''}
-                      ${hasJournals && !isSelected ? 'bg-slate-100 hover:bg-slate-200' : ''}
-                      ${!hasJournals && !isSelected ? 'hover:bg-slate-50' : ''}
-                      ${isToday(day) && !isSelected ? 'bg-blue-50 text-blue-600 font-medium border-2 border-blue-200' : ''}
-                    `}
+                    onClick={() => setViewMode("calendar")}
+                    className={`p-2 rounded transition-colors ${
+                      viewMode === "calendar"
+                        ? "bg-slate-100 dark:bg-slate-700 text-[#2b9dee] shadow-sm"
+                        : "hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-[#2b9dee]"
+                    }`}
                   >
-                    <div className="flex flex-col items-center justify-between h-full">
-                      <span className="font-medium">{format(day, 'd')}</span>
-                      
-                      {hasJournals && (
-                        <div className="flex flex-col items-center gap-1 mt-1">
-                          {/* Show up to 3 emotion indicators */}
-                          <div className="flex gap-1 flex-wrap justify-center">
-                            {dayJournals.slice(0, 3).map((journal, idx) => {
-                              const emotion = getJournalEmotion(journal);
-                              const emoji = getEmotionEmoji(emotion || 'neutral');
-                              const dotColor = getEmotionDotClass(emotion || 'neutral');
-                              
-                              return (
-                                <div
-                                  key={idx}
-                                  className="relative group"
-                                  title={`${journal.title || 'Jurnal'} - ${emotion || 'Tanpa emosi'}`}
-                                >
-                                  {/* Show emoji if not selected, colored dot if selected */}
-                                  {isSelected ? (
-                                    <div className="w-2 h-2 bg-white/60 rounded-full" />
-                                  ) : (
-                                    <div className="flex items-center">
-                                      <span className="text-xs">{emoji}</span>
-                                      <div className={`w-1.5 h-1.5 ${dotColor} rounded-full ml-0.5`} />
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                          
-                          {/* Show count if more than 3 journals */}
-                          {dayJournals.length > 3 && (
-                            <div className={`text-xs ${isSelected ? 'text-white/80' : 'text-slate-500'}`}>
-                              +{dayJournals.length - 3}
+                    <CalendarIcon className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode("list")}
+                    className={`p-2 rounded transition-colors ${
+                      viewMode === "list"
+                        ? "bg-slate-100 dark:bg-slate-700 text-[#2b9dee] shadow-sm"
+                        : "hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-[#2b9dee]"
+                    }`}
+                  >
+                    <List className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* Sidebar - Calendar & Filters (only in calendar view) */}
+            {viewMode === "calendar" && (
+              <aside className="lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-44">
+                
+                {/* Calendar */}
+                <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                      {format(currentDate, 'MMMM yyyy', { locale: localeId })}
+                    </h3>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => setCurrentDate(subMonths(currentDate, 1))}
+                        className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-500 transition-colors"
+                      >
+                        <ChevronLeft className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => setCurrentDate(addMonths(currentDate, 1))}
+                        className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-500 transition-colors"
+                      >
+                        <ChevronRight className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-7 text-center gap-y-4 gap-x-1">
+                    {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map(day => (
+                      <span key={day} className="text-xs font-medium text-slate-400 uppercase">
+                        {day}
+                      </span>
+                    ))}
+
+                    {calendarDays.map((day, index) => {
+                      const dayJournals = getJournalsForDate(day);
+                      const isCurrentMonth = isSameMonth(day, currentDate);
+                      const isSelected = selectedDate && isSameDay(day, selectedDate);
+                      const hasJournals = dayJournals.length > 0;
+                      const isTodayDate = isToday(day);
+
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => handleDateClick(day)}
+                          disabled={!hasJournals}
+                          className={`relative flex items-center justify-center size-9 mx-auto rounded-full text-sm transition-colors ${
+                            isSelected
+                              ? "bg-[#2b9dee] text-white font-bold shadow-md shadow-[#2b9dee]/30"
+                              : hasJournals
+                              ? "hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
+                              : isCurrentMonth
+                              ? "text-slate-400 dark:text-slate-600"
+                              : "text-slate-300 dark:text-slate-700"
+                          }`}
+                        >
+                          {format(day, 'd')}
+                          {hasJournals && !isSelected && (
+                            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#2b9dee] rounded-full"></div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Emotion Filter */}
+                <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
+                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">
+                    Filter by Mood
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => handleEmotionFilter("all")}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                        activeEmotionFilter === "all"
+                          ? "bg-[#2b9dee] text-white"
+                          : "bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600"
+                      }`}
+                    >
+                      All ({journals.length})
+                    </button>
+                    {Object.entries(emotionCounts)
+                      .sort(([, a], [, b]) => b - a)
+                      .map(([emotion, count]) => {
+                        const style = getEmotionStyle(emotion);
+                        return (
+                          <button
+                            key={emotion}
+                            onClick={() => handleEmotionFilter(emotion)}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors capitalize ${
+                              activeEmotionFilter.toLowerCase() === emotion.toLowerCase()
+                                ? "bg-[#2b9dee] text-white"
+                                : `${style.bg} ${style.text} ${style.hover}`
+                            }`}
+                          >
+                            {emotion} ({count})
+                          </button>
+                        );
+                      })}
+                  </div>
+                </div>
+              </aside>
+            )}
+
+            {/* Journal List */}
+            <div className={viewMode === "calendar" ? "lg:col-span-8 flex flex-col gap-6" : "lg:col-span-12 flex flex-col gap-6"}>
+              {displayedJournals.length === 0 ? (
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-12 text-center">
+                  <div className="max-w-md mx-auto">
+                    <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                      Tidak ada jurnal
+                    </h3>
+                    <p className="text-slate-600 dark:text-slate-400 font-light">
+                      {selectedDate
+                        ? `Tidak ada jurnal pada ${format(selectedDate, 'dd MMMM yyyy', { locale: localeId })}`
+                        : activeEmotionFilter !== "all"
+                        ? `Tidak ada jurnal dengan mood "${activeEmotionFilter}"`
+                        : "Mulai menulis jurnal pertama Anda untuk merekam perjalanan emosi dan refleksi Anda."}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {displayedJournals.map((journal: any) => {
+                    const emotion = getJournalEmotion(journal);
+                    const emotionStyle = emotion ? getEmotionStyle(emotion) : null;
+                    const weatherData = journal.weather_data;
+                    const aqiValue = weatherData?.current?.air_quality?.["us-epa-index"];
+                    const aqiInfo = getAQILabel(aqiValue);
+
+                    return (
+                      <div
+                        key={journal.id}
+                        className="group bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg hover:shadow-[#2b9dee]/5 transition-all overflow-hidden flex flex-col md:flex-row"
+                      >
+                        {/* Weather/Image Section */}
+                        <div className="w-full md:w-1/3 min-h-[160px] bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-800 relative flex items-center justify-center p-6">
+                          {weatherData?.current ? (
+                            <div className="text-center">
+                              <div className="text-4xl mb-2">
+                                {weatherData.current.condition?.text?.toLowerCase().includes('rain') ? '🌧️' :
+                                 weatherData.current.condition?.text?.toLowerCase().includes('cloud') ? '☁️' :
+                                 weatherData.current.condition?.text?.toLowerCase().includes('sun') || 
+                                 weatherData.current.condition?.text?.toLowerCase().includes('clear') ? '☀️' : '🌤️'}
+                              </div>
+                              <div className="text-2xl font-light text-slate-700 dark:text-slate-200 mb-1">
+                                {weatherData.current.temp_c}°C
+                              </div>
+                              <div className="text-xs text-slate-500 dark:text-slate-400 capitalize">
+                                {weatherData.current.condition?.text || 'Clear'}
+                              </div>
                             </div>
+                          ) : (
+                            <div className="text-6xl opacity-20">📝</div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
 
-            {/* Calendar Legend */}
-            {currentFilters.emotionFilter === 'all' && (
-              <div className="mt-6 pt-4 border-t border-slate-200">
-                <div className="text-xs text-slate-600 mb-2">Legenda Emosi:</div>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(emotionEmojis).slice(0, 8).map(([emotion, emoji]) => (
-                    <div key={emotion} className="flex items-center gap-1 text-xs text-slate-600">
-                      <span>{emoji}</span>
-                      <div className={`w-2 h-2 ${getEmotionDotClass(emotion)} rounded-full`} />
-                      <span className="capitalize">{emotion}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : null}
+                        {/* Content Section */}
+                        <div className="flex-1 p-6 md:p-8 flex flex-col justify-between gap-4">
+                          <div className="flex justify-between items-start">
+                            <div className="flex gap-2 mb-1 flex-wrap">
+                              {/* Emotion Badge */}
+                              {emotion && emotionStyle && (
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full ${emotionStyle.bg} ${emotionStyle.text} text-xs font-bold uppercase tracking-wider`}>
+                                  {emotion}
+                                </span>
+                              )}
+                              {/* Weather Badge */}
+                              {weatherData?.current?.condition?.text && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider">
+                                  <Cloud className="h-3 w-3" />
+                                  {weatherData.current.condition.text}
+                                </span>
+                              )}
+                              {/* AQI Badge */}
+                              {aqiInfo && (
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 ${aqiInfo.color} text-xs font-bold uppercase tracking-wider`}>
+                                  <Wind className="h-3 w-3" />
+                                  AQI {aqiValue}
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-sm font-bold text-slate-400">
+                              {format(new Date(journal.created_at), 'MMM dd', { locale: localeId })}
+                            </span>
+                          </div>
 
-        {/* Journal List */}
-        {(viewMode === 'list' || selectedDate) && (
-          <div className="space-y-4 mt-6">
-            {displayedJournals.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="bg-white rounded-2xl border border-slate-200 p-8 max-w-md mx-auto">
-                  <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Search className="h-8 w-8 text-slate-400" />
-                  </div>
-                  <h3 className="text-lg font-medium text-slate-800 mb-2">
-                    {selectedDate ? 'Tidak Ada Jurnal' : 'Belum Ada Jurnal'}
-                  </h3>
-                  <p className="text-slate-600 mb-6">
-                    {selectedDate 
-                      ? `Tidak ada jurnal pada ${format(selectedDate, 'dd MMMM yyyy', { locale: id })}`
-                      : 'Mulai perjalanan jurnal Anda dengan membuat entri pertama.'
-                    }
-                  </p>
-                  {!selectedDate && (
-                    <Button asChild className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl">
-                      <Link href="/protected/journal/new" className="flex items-center gap-2">
-                        <Sparkles className="h-4 w-4" />
-                        Buat Jurnal Pertama
-                      </Link>
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {displayedJournals.map((journal: any) => {
-                  const emotion = getJournalEmotion(journal);
-                  
-                  return (
-                    <div
-                      key={journal.id}
-                      className="bg-white rounded-2xl border border-slate-200 p-6 hover:border-slate-300 transition-colors"
-                    >
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <Link 
-                            href={`/protected/journal/${journal.id}`}
-                            className="block group"
-                          >
-                            <h3 className="text-lg font-medium text-slate-800 group-hover:text-blue-600 transition-colors mb-2 line-clamp-1">
-                              {journal.title || 'Tanpa Judul'}
-                            </h3>
-                          </Link>
-                          
-                          <div className="flex items-center gap-4 text-sm text-slate-600 mb-3">
-                            <div className="flex items-center gap-1">
-                              <CalendarIcon className="h-4 w-4" />
-                              <span>
-                                {format(new Date(journal.created_at), 'dd MMM yyyy', { locale: id })}
-                              </span>
+                          <div>
+                            <Link href={`/protected/journal/${journal.id}`}>
+                              <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-[#2b9dee] transition-colors line-clamp-1">
+                                {journal.title || 'Tanpa Judul'}
+                              </h2>
+                            </Link>
+                            <p className="text-slate-600 dark:text-slate-300 font-light leading-relaxed line-clamp-2">
+                              {journal.content || 'Tidak ada konten.'}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700">
+                            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                              {journal.location && (
+                                <span className="flex items-center gap-1">
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  </svg>
+                                  {journal.location}
+                                </span>
+                              )}
                             </div>
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
-                              <span>
-                                {formatDistanceToNow(new Date(journal.created_at), {
-                                  addSuffix: true,
-                                  locale: id
-                                })}
-                              </span>
-                            </div>
+
+                            <Link
+                              href={`/protected/journal/${journal.id}`}
+                              className="text-[#2b9dee] hover:text-[#1e7ac7] font-medium text-sm transition-colors flex items-center gap-1"
+                            >
+                              Baca selengkapnya
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </Link>
                           </div>
                         </div>
-
-                        {/* Emotion Badge */}
-                        {emotion && (
-                          <Badge className={`${getEmotionColorClass(emotion)} rounded-xl font-medium px-3 py-1`}>
-                            <span className="mr-1">{getEmotionEmoji(emotion)}</span>
-                            {emotion}
-                          </Badge>
-                        )}
                       </div>
-
-                      <p className="text-slate-600 line-clamp-2 mb-4 leading-relaxed">
-                        {journal.content || 'Tidak ada konten.'}
-                      </p>
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-3">
-                        <Button
-                          size="sm"
-                          asChild
-                          className="bg-blue-500 hover:bg-blue-600 text-white rounded-xl h-8 px-3"
-                        >
-                          <Link href={`/protected/journal/${journal.id}`} className="flex items-center gap-1">
-                            <Eye className="h-3 w-3" />
-                            <span className="text-xs">Lihat</span>
-                          </Link>
-                        </Button>
-
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          asChild
-                          className="border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-8 px-3"
-                        >
-                          <Link href={`/protected/journal/edit/${journal.id}`} className="flex items-center gap-1">
-                            <Edit className="h-3 w-3" />
-                            <span className="text-xs">Edit</span>
-                          </Link>
-                        </Button>
-
-                        <DeleteJournalButton
-                          journalId={journal.id}
-                          journalTitle={journal.title || "Tanpa Judul"}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                    );
+                  })}
+                </>
+              )}
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

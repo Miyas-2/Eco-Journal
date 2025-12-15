@@ -1,542 +1,458 @@
+'use client';
+
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import Image from 'next/image';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import {
-  BookOpen,
-  Brain,
-  Leaf,
-  MessageCircle,
-  TrendingUp,
-  Shield,
-  ChevronRight,
-  Star,
-  Users,
-  Heart,
-  BarChart3,
-  Wind,
-  Sprout,
-  Waves,
-  TreePine,
-  Flower2,
-  Sun,
-  Moon,
-  Globe,
-  Sparkles,
-  Target,
-  Award,
-  CheckCircle,
-  Cloud,
-  Droplets,
-  Mountain,
-  Bird,
-  Coffee,
-  Map,
-  Navigation,
-  Compass,
-  Zap
-} from 'lucide-react';
+import { useState } from 'react';
+
+const HERO_SLIDES = [
+  {
+    title: "Your thoughts, shaped by the sky.",
+    subtitle: "Understand how the air quality and weather influence your mood. A journal that connects your inner world with the environment around you.",
+    vibe: "Cloudy with a chance of reflection",
+    image: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCJbOA5fkV9R2k6tUqLUztzKTtT-E7S1xbI9HpFUa9a3TtpuARzXCIZHpqR44EDFE4Ls3JiZSfOtJIuQlqeK4oNMbpUH0q0r7ISJ4tKNZ7hd0prXSbL5TsJk3FC2sl_gLonZfXVE2pDzEB-R2aiHzVt4AmuD3cP8DsaxZ8XWYHmklgwiGZam6QlU-FBx5nVdIPzM3RZROvJjG-fegDaKMct7X0GSWLQM9yBUOh8WpuTYCXTco6EyKnCQg-I6oJ952CyglkixNXBP3g")',
+  },
+  {
+    title: "Track Your Mood, See the Pattern.",
+    subtitle: "Jurnalin helps you visualize your emotional journey and how it relates to your environment. Spot trends, triggers, and progress over time.",
+    vibe: "Every mood matters",
+    image: 'url("https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80")',
+  },
+  {
+    title: "Community Insights, Anonymously Shared.",
+    subtitle: "See how others in your area are feeling and how the environment affects the community. All data is anonymized for privacy.",
+    vibe: "You're not alone",
+    image: 'url("https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=800&q=80")',
+  },
+];
 
 export default function LandingPage() {
+  const [slide, setSlide] = useState(0);
+
+  const nextSlide = () => setSlide((s) => (s + 1) % HERO_SLIDES.length);
+  const prevSlide = () => setSlide((s) => (s - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
+
+  const hero = HERO_SLIDES[slide];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50/80 to-stone-50/60">
-      {/* Header */}
-      <header className="border-b border-gray-200/80 bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-[#2596be] rounded-2xl flex items-center justify-center shadow-lg">
-              <Sprout className="w-6 h-6 text-white" />
+    <>
+      {/* Google Fonts: Lexend + Material Symbols */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+      
+      <style jsx global>{`
+        .material-symbols-outlined {
+          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+      `}</style>
+
+      <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f6f7f8] dark:bg-[#101a22] text-slate-900 dark:text-slate-50 transition-colors duration-200" style={{ fontFamily: 'Lexend, sans-serif' }}>
+        {/* Navbar */}
+        <div className="sticky top-0 z-50 w-full bg-[#f6f7f8]/80 dark:bg-[#101a22]/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+          <header className="flex items-center justify-between whitespace-nowrap px-6 py-4 lg:px-20 max-w-[1400px] mx-auto w-full">
+            <div className="flex items-center gap-3 text-[#0d161b] dark:text-white">
+              <div className="size-8 flex items-center justify-center text-[#2b9dee]">
+                <span className="material-symbols-outlined text-3xl">spa</span>
+              </div>
+              <h2 className="text-[#0d161b] dark:text-white text-xl font-bold leading-tight tracking-[-0.015em]">Jurnalin</h2>
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-[#2596be] bg-clip-text text-transparent">
-              Jurnalin
-            </span>
-          </div>
-          <div className="flex items-center space-x-4">
             <Link href="/auth/login">
-              <Button variant="ghost" className="hover:bg-gray-100 text-gray-700 hover:text-[#2596be] font-medium">
-                Masuk
-              </Button>
+              <button className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-6 bg-[#2b9dee]/10 hover:bg-[#2b9dee]/20 text-[#2b9dee] text-sm font-bold leading-normal tracking-[0.015em] transition-colors">
+                <span className="truncate">Log In</span>
+              </button>
             </Link>
-            <Link href="/auth/sign-up">
-              <Button className="bg-[#2596be] hover:bg-[#1f7a9c] text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-full px-6">
-                Daftar Gratis
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-24 text-center relative">
-        {/* Natural decorative elements */}
-        <div className="absolute top-20 left-10 w-20 h-20 bg-[#2596be]/20 rounded-full blur-xl"></div>
-        <div className="absolute top-40 right-16 w-32 h-32 bg-[#2596be]/15 rounded-full blur-2xl"></div>
-        <div className="absolute bottom-20 left-1/4 w-16 h-16 bg-[#2596be]/25 rounded-full blur-lg"></div>
-
-        {/* Floating elements */}
-        <div className="absolute top-1/4 right-1/4 animate-float">
-          <Cloud className="w-12 h-12 text-gray-300/60" />
-        </div>
-        <div className="absolute bottom-1/3 left-1/5 animate-float delay-1000">
-          <Bird className="w-10 h-10 text-[#2596be]/40" />
+          </header>
         </div>
 
-        <div className="max-w-5xl mx-auto relative z-10">
-          <Badge variant="secondary" className="mb-8 bg-[#2596be]/10 text-[#2596be] border-[#2596be]/20 px-6 py-3 rounded-full text-sm font-medium">
-            <Sparkles className="w-4 h-4 mr-2" />
-            Ruang Aman untuk Kesehatan Mental
-          </Badge>
-
-          <h1 className="text-5xl md:text-7xl font-bold mb-10 bg-gradient-to-r from-gray-800 via-[#2596be] to-[#1f7a9c] bg-clip-text text-transparent leading-tight">
-            Ruang Cerita
-            <span className="block text-gray-700">yang Memahami</span>
-          </h1>
-
-          <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed font-light">
-            Temukan kedamaian melalui jurnal harian yang tidak hanya mendengarkan,
-            tapi juga <span className="text-[#2596be] font-medium">memahami perasaanmu</span> dan
-            hubungannya dengan <span className="text-[#1f7a9c] font-medium">lingkungan sekitarmu</span>.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-20">
-            <Link href="/auth/sign-up">
-              <Button size="lg" className="bg-[#2596be] hover:bg-[#1f7a9c] text-white px-10 py-5 text-lg shadow-xl hover:shadow-2xl transition-all duration-300 rounded-full font-semibold">
-                <Heart className="mr-3 w-5 h-5" />
-                Mulai Healing Journey
-                <ChevronRight className="ml-3 w-5 h-5" />
-              </Button>
-            </Link>
-            <Link href="/auth/login">
-              <Button size="lg" variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-10 py-5 text-lg rounded-full font-medium">
-                <Coffee className="mr-3 w-5 h-5" />
-                Coba Demo
-              </Button>
-            </Link>
+        {/* Main Content */}
+        <main className="flex-1 flex flex-col relative w-full">
+          {/* Abstract background blobs */}
+          <div className="absolute top-0 left-0 w-full h-[1000px] overflow-hidden -z-10 pointer-events-none">
+            <div className="absolute top-[10%] left-[5%] w-[400px] h-[400px] bg-blue-100/50 dark:bg-blue-900/10 rounded-full blur-3xl opacity-60"></div>
+            <div className="absolute bottom-[10%] right-[5%] w-[500px] h-[500px] bg-cyan-100/50 dark:bg-cyan-900/10 rounded-full blur-3xl opacity-60"></div>
           </div>
 
-          {/* Enhanced Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 group">
-              <div className="w-16 h-16 bg-[#2596be] rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                <Users className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-4xl font-bold text-[#2596be] mb-2">25K+</div>
-              <p className="text-gray-600 font-medium">Sahabat Jurnalin</p>
-            </div>
-            <div className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 group">
-              <div className="w-16 h-16 bg-[#2596be] rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                <Target className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-4xl font-bold text-[#2596be] mb-2">94%</div>
-              <p className="text-gray-600 font-medium">Merasa Lebih Baik</p>
-            </div>
-            <div className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 group">
-              <div className="w-16 h-16 bg-[#2596be] rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                <BookOpen className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-4xl font-bold text-[#2596be] mb-2">100K+</div>
-              <p className="text-gray-600 font-medium">Cerita Tersimpan</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* App Screenshots Section */}
-      <section className="py-20 bg-white/60 relative overflow-hidden">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <Badge className="mb-6 bg-[#2596be]/10 text-[#2596be] border-[#2596be]/20 px-4 py-2 rounded-full">
-              <Zap className="w-4 h-4 mr-2" />
-              Preview Aplikasi
-            </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold mb-8 text-gray-800">
-              Interface yang <span className="text-[#2596be]">Menenangkan</span>
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Jelajahi fitur-fitur Jurnalin melalui tampilan aplikasi yang dirancang untuk kenyamanan dan kedamaian
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-20">
-            {/* Journal Screen */}
-            <div className="text-center group">
-              <div className="bg-gradient-to-br from-white to-[#2596be]/5 rounded-3xl p-8 shadow-lg border border-gray-200 h-full">
-                <div className="w-16 h-16 bg-[#2596be] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                  <BookOpen className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-semibold mb-4 text-gray-800">Jurnal Harian</h3>
-                <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl p-4 h-64 flex items-center justify-center mb-4 border border-gray-300">
-                  <div className="text-center">
-                    <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-500 text-sm">Tampilan jurnal harian</p>
-                    <p className="text-gray-400 text-xs">Interface yang clean dan menenangkan</p>
-                  </div>
-                </div>
-                <p className="text-gray-600 text-sm">
-                  Interface menulis yang nyaman dengan guided prompts untuk membantu refleksi
-                </p>
-              </div>
-            </div>
-
-
-            {/* Analytics Screen */}
-            <div className="text-center group">
-              <div className="bg-gradient-to-br from-white to-[#2596be]/5 rounded-3xl p-8 shadow-lg border border-gray-200 h-full">
-                <div className="w-16 h-16 bg-[#2596be] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                  <BarChart3 className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-semibold mb-4 text-gray-800">Analytics Dashboard</h3>
-                <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl p-4 h-64 flex items-center justify-center mb-4 border border-gray-300 overflow-hidden">
-                  <Image
-                    src="/analytics.png"
-                    alt="Analytics Dashboard Preview"
-                    width={1200}
-                    height={600}
-                    className="w-full h-full object-cover rounded-xl"
-                    priority
-                  />
-                </div>
-              </div>
-              <p className="text-gray-600 text-sm">
-                Tracking progress emotional well-being dengan chart yang informatif
-              </p>
-            </div>
-
-
-            {/* Garden Screen */}
-            <div className="text-center group">
-              <div className="bg-gradient-to-br from-white to-[#2596be]/5 rounded-3xl p-8 shadow-lg border border-gray-200 h-full">
-                <div className="w-16 h-16 bg-[#2596be] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                  <TreePine className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-semibold mb-4 text-gray-800">Virtual Garden</h3>
-                <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl p-4 h-64 flex items-center justify-center mb-4 border border-gray-300">
-                  <div className="text-center">
-                    <TreePine className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-500 text-sm">Taman virtual personal</p>
-                    <p className="text-gray-400 text-xs">Tumbuh seiring konsistensi menulis</p>
-                  </div>
-                </div>
-                <p className="text-gray-600 text-sm">
-                  Gamifikasi yang menyenangkan untuk memotivasi konsistensi self-care
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Green Map Feature Section */}
-      <section className="py-28 bg-gradient-to-br from-[#2596be]/5 to-white/80 relative overflow-hidden">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-20">
-            <Badge className="mb-6 bg-[#2596be]/10 text-[#2596be] border-[#2596be]/20 px-4 py-2 rounded-full">
-              <Map className="w-4 h-4 mr-2" />
-              Fitur Baru
-            </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold mb-8 text-gray-800">
-              Green Map <span className="text-[#2596be]">Explorer</span>
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Temukan area hijau terdekat dan pantau kualitas udara di sekitarmu untuk mendukung kesehatan mental optimal
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Feature Description */}
-            <div className="space-y-8">
-              <div className="flex items-start space-x-4 group">
-                <div className="w-12 h-12 bg-[#2596be] rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                  <Compass className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-gray-800">Peta Area Hijau Real-time</h3>
-                  <p className="text-gray-600">
-                    Eksplor taman, hutan kota, dan ruang terbuka hijau di sekitarmu dengan data yang selalu terupdate
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4 group">
-                <div className="w-12 h-12 bg-[#2596be] rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                  <Wind className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-gray-800">Monitoring Kualitas Udara</h3>
-                  <p className="text-gray-600">
-                    Pantau tingkat polusi udara (AQI), pollen count, dan faktor lingkungan lain yang mempengaruhi mood
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4 group">
-                <div className="w-12 h-12 bg-[#2596be] rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                  <Navigation className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-gray-800">Rute Healing Terbaik</h3>
-                  <p className="text-gray-600">
-                    Dapatkan rekomendasi rute menuju area hijau dengan kualitas udara terbaik berdasarkan lokasimu
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4 group">
-                <div className="w-12 h-12 bg-[#2596be] rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                  <TrendingUp className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-gray-800">Korelasi Lingkungan-Mood</h3>
-                  <p className="text-gray-600">
-                    Analisis bagaimana kunjungan ke area hijau mempengaruhi pola mood dan kesehatan mentalmu
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Map Preview */}
-            <div className="relative">
-              <div className="bg-gradient-to-br from-white to-[#2596be]/5 rounded-3xl p-8 shadow-2xl border border-gray-200">
-                <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl p-6 h-96 relative overflow-hidden border border-gray-300">
-                  {/* Mock Map */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-green-100 via-blue-100 to-emerald-100">
-                    {/* Map Grid */}
-                    <div className="absolute inset-0 opacity-20">
-                      <div className="grid grid-cols-8 gap-4 h-full">
-                        {[...Array(8)].map((_, i) => (
-                          <div key={i} className="border-r border-gray-300 last:border-r-0"></div>
-                        ))}
-                      </div>
+          {/* Hero Section */}
+          <section className="px-6 pt-12 pb-16 lg:px-20 w-full flex justify-center">
+            <div className="max-w-[1200px] w-full">
+              <div className="@container">
+                <div className="flex flex-col-reverse lg:flex-row gap-12 lg:gap-20 items-center">
+                  {/* Left: Content */}
+                  <div className="flex flex-col gap-8 flex-1 w-full lg:max-w-[500px]">
+                    <div className="flex flex-col gap-4 text-left">
+                      <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-[#2b9dee] text-xs font-bold uppercase tracking-wider w-fit">
+                        <span className="material-symbols-outlined text-sm">wb_sunny</span>
+                        Welcome
+                      </span>
+                      <h1 className="text-[#0d161b] dark:text-white text-4xl lg:text-6xl font-black leading-[1.1] tracking-[-0.033em]">
+                        {hero.title}
+                      </h1>
+                      <h2 className="text-slate-600 dark:text-slate-300 text-lg font-light leading-relaxed">
+                        {hero.subtitle}
+                      </h2>
                     </div>
 
-                    {/* Green Areas */}
-                    <div className="absolute top-1/4 left-1/4 w-20 h-20 bg-green-400/30 rounded-full blur-lg"></div>
-                    <div className="absolute top-1/3 right-1/3 w-32 h-32 bg-emerald-300/40 rounded-full blur-xl"></div>
-                    <div className="absolute bottom-1/4 left-1/3 w-24 h-24 bg-teal-400/30 rounded-full blur-lg"></div>
+                    <div className="flex flex-wrap gap-4 mt-2">
+                      <Link href="/auth/sign-up">
+                        <button className="flex min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-[#2b9dee] hover:bg-[#1a8cd8] text-white shadow-lg shadow-blue-500/20 text-base font-bold leading-normal tracking-[0.015em] transition-all transform active:scale-95">
+                          <span className="truncate">Start Journaling</span>
+                        </button>
+                      </Link>
+                      <button className="flex min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[#0d161b] dark:text-white text-base font-bold leading-normal tracking-[0.015em] transition-colors">
+                        <span className="truncate">Learn More</span>
+                      </button>
+                    </div>
 
-                    {/* Air Quality Indicators */}
-                    <div className="absolute top-8 left-8 bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                        <div>
-                          <p className="text-sm font-semibold text-gray-800">Kualitas Udara</p>
-                          <p className="text-xs text-green-600">BAIK - AQI 45</p>
+                    {/* Pagination Controls */}
+                    <div className="flex items-center gap-4 mt-4 pt-6 border-t border-slate-100 dark:border-slate-800">
+                      <button
+                        className="flex size-10 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        onClick={prevSlide}
+                      >
+                        <span className="material-symbols-outlined text-slate-500">chevron_left</span>
+                      </button>
+                      <div className="flex gap-2">
+                        {HERO_SLIDES.map((_, idx) => (
+                          <div
+                            key={idx}
+                            className={
+                              idx === slide
+                                ? "h-2 w-8 rounded-full bg-[#2b9dee] transition-all cursor-pointer"
+                                : "h-2 w-2 rounded-full bg-slate-200 dark:bg-slate-700 transition-all cursor-pointer"
+                            }
+                            onClick={() => setSlide(idx)}
+                          ></div>
+                        ))}
+                      </div>
+                      <button
+                        className="flex size-10 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        onClick={nextSlide}
+                      >
+                        <span className="material-symbols-outlined text-slate-500">chevron_right</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Right: Image */}
+                  <div className="flex-1 w-full flex justify-center lg:justify-end">
+                    <div className="relative w-full aspect-square max-w-[500px] max-h-[500px] rounded-2xl overflow-hidden shadow-2xl shadow-blue-900/10">
+                      <div 
+                        className="w-full h-full bg-cover bg-center transition-transform hover:scale-105 duration-700" 
+                        style={{ backgroundImage: hero.image }}
+                      >
+                      </div>
+                      {/* Overlay Card */}
+                      <div className="absolute bottom-6 left-6 right-6 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-white/20 dark:border-slate-700/50 flex items-center gap-4">
+                        <div className="bg-blue-50 dark:bg-blue-900/30 p-2 rounded-lg text-[#2b9dee]">
+                          <span className="material-symbols-outlined">cloud</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wide">Today&apos;s Vibe</span>
+                          <span className="text-sm text-[#0d161b] dark:text-white font-bold">{hero.vibe}</span>
                         </div>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
 
-                    {/* User Location */}
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                      <div className="w-8 h-8 bg-[#2596be] rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                        <div className="w-4 h-4 bg-white rounded-full"></div>
-                      </div>
-                      <div className="absolute inset-0 w-8 h-8 bg-[#2596be] rounded-full animate-ping"></div>
+          {/* Philosophy Section */}
+          <section className="py-24 px-6 relative">
+            <div className="max-w-[800px] mx-auto text-center flex flex-col gap-6">
+              <span className="material-symbols-outlined text-4xl text-[#2b9dee]/50">water_drop</span>
+              <h2 className="text-3xl md:text-4xl font-bold text-[#0d161b] dark:text-white leading-tight">
+                We are not separate from <br/> <span className="text-[#2b9dee]">the air we breathe.</span>
+              </h2>
+              <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-light">
+                Mood isn&apos;t just internal. It&apos;s influenced by invisible tides—barometric pressure, humidity, air quality, and light. Jurnalin helps you see the invisible threads connecting your well-being to your environment, turning abstract feelings into clear insights.
+              </p>
+            </div>
+          </section>
+
+          {/* Features Section */}
+          <section className="py-20 px-6 bg-white/40 dark:bg-white/5 border-y border-slate-100 dark:border-slate-800 backdrop-blur-sm">
+            <div className="max-w-[1200px] mx-auto">
+              <div className="text-center mb-16">
+                <span className="uppercase tracking-widest text-xs font-bold text-slate-400 mb-2 block">Holistic Tracking</span>
+                <h3 className="text-2xl font-bold text-[#0d161b] dark:text-white">Everything you need to find balance</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="group p-8 rounded-2xl bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 hover:shadow-soft transition-all duration-300">
+                  <div className="size-12 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-[#2b9dee] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined">edit_note</span>
+                  </div>
+                  <h4 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">Mindful Journaling</h4>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">Freely express your thoughts or use daily guided prompts designed to unblock your mind.</p>
+                </div>
+                <div className="group p-8 rounded-2xl bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 hover:shadow-soft transition-all duration-300">
+                  <div className="size-12 rounded-xl bg-cyan-50 dark:bg-cyan-900/30 text-cyan-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined">air</span>
+                  </div>
+                  <h4 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">Air Quality Data</h4>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">Automatic syncing of local AQI, PM2.5, and weather conditions for every entry you make.</p>
+                </div>
+                <div className="group p-8 rounded-2xl bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 hover:shadow-soft transition-all duration-300">
+                  <div className="size-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined">psychology</span>
+                  </div>
+                  <h4 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">Emotion Analysis</h4>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">Our gentle AI analyzes sentiment to help you track emotional trends over weeks and months.</p>
+                </div>
+                <div className="group p-8 rounded-2xl bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 hover:shadow-soft transition-all duration-300">
+                  <div className="size-12 rounded-xl bg-violet-50 dark:bg-violet-900/30 text-violet-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined">auto_awesome</span>
+                  </div>
+                  <h4 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">AI Insights</h4>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">Receive personalized reflections connecting your mood to the weather patterns outside.</p>
+                </div>
+                <div className="group p-8 rounded-2xl bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 hover:shadow-soft transition-all duration-300">
+                  <div className="size-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined">monitoring</span>
+                  </div>
+                  <h4 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">Mood Analytics</h4>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">Beautiful, calm charts that visualize your emotional journey alongside environmental health.</p>
+                </div>
+                <div className="group p-8 rounded-2xl bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 hover:shadow-soft transition-all duration-300">
+                  <div className="size-12 rounded-xl bg-sky-50 dark:bg-sky-900/30 text-sky-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined">map</span>
+                  </div>
+                  <h4 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">Environment Map</h4>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">See a heat map of where you feel calmest in your city based on your own data.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* How It Works Section */}
+          <section className="py-24 px-6">
+            <div className="max-w-[1000px] mx-auto">
+              <div className="text-center mb-16">
+                <h3 className="text-2xl font-bold text-[#0d161b] dark:text-white">A simple routine for clarity</h3>
+              </div>
+              <div className="flex flex-col md:flex-row gap-8 items-start relative">
+                <div className="hidden md:block absolute top-8 left-0 w-full h-0.5 bg-slate-100 dark:bg-slate-800 -z-10"></div>
+                <div className="flex-1 flex flex-col items-center text-center gap-4">
+                  <div className="size-16 rounded-full bg-white dark:bg-slate-800 border-4 border-slate-50 dark:border-slate-900 shadow-sm flex items-center justify-center text-xl font-bold text-[#2b9dee] relative z-10">1</div>
+                  <h4 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Check In</h4>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm">Take 2 minutes to log how you feel. Use tags, text, or just a color.</p>
+                </div>
+                <div className="flex-1 flex flex-col items-center text-center gap-4">
+                  <div className="size-16 rounded-full bg-white dark:bg-slate-800 border-4 border-slate-50 dark:border-slate-900 shadow-sm flex items-center justify-center text-xl font-bold text-[#2b9dee] relative z-10">2</div>
+                  <h4 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Connect</h4>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm">We automatically pull in air quality, weather, and location data.</p>
+                </div>
+                <div className="flex-1 flex flex-col items-center text-center gap-4">
+                  <div className="size-16 rounded-full bg-white dark:bg-slate-800 border-4 border-slate-50 dark:border-slate-900 shadow-sm flex items-center justify-center text-xl font-bold text-[#2b9dee] relative z-10">3</div>
+                  <h4 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Reflect</h4>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm">Uncover hidden patterns and learn what environments nourish you.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Map Feature Section (NEW) */}
+          <section className="py-24 px-6 relative overflow-hidden bg-[#f6f7f8] dark:bg-[#101a22]">
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-[#2b9dee]/5 rounded-full blur-3xl -z-10"></div>
+            <div className="max-w-[1200px] mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <div className="order-2 lg:order-1 relative group">
+                  <div className="relative w-full aspect-square max-h-[500px] bg-white dark:bg-slate-800 rounded-3xl overflow-hidden shadow-2xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-100 dark:border-slate-700 transform transition-transform duration-700 hover:scale-[1.01]">
+                    <div className="absolute inset-0 bg-[#f0f4f8] dark:bg-[#1a202c]">
+                      <div className="absolute top-0 right-0 w-1/3 h-full bg-[#dbeafe] dark:bg-[#1e3a8a]/20 skew-x-12 origin-top-right"></div>
+                      <div className="absolute top-10 left-10 w-32 h-24 rounded-full bg-[#d1fae5] dark:bg-[#065f46]/30 blur-2xl opacity-60"></div>
+                      <div className="absolute bottom-20 right-1/3 w-40 h-40 rounded-full bg-[#d1fae5] dark:bg-[#065f46]/30 blur-2xl opacity-60"></div>
+                      <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(rgba(148, 163, 184, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.1) 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+                      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-50" preserveAspectRatio="none" viewBox="0 0 100 100">
+                        <path d="M 20 80 Q 50 50 80 30" fill="none" stroke="#2b9dee" strokeDasharray="2 2" strokeWidth="0.5"></path>
+                      </svg>
                     </div>
-
-                    {/* Green Spots */}
-                    <div className="absolute top-16 right-16 bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-lg">
-                      <div className="flex items-center space-x-2">
-                        <TreePine className="w-4 h-4 text-green-600" />
-                        <span className="text-xs font-medium text-gray-700">Taman Menteng</span>
+                    <div className="absolute bottom-[25%] left-[20%] flex flex-col items-center group/pin cursor-pointer transition-transform hover:-translate-y-1">
+                      <div className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center text-rose-500 z-10 relative">
+                        <span className="material-symbols-outlined text-sm">favorite</span>
                       </div>
+                      <div className="absolute bottom-full mb-2 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg shadow-xl opacity-0 group-hover/pin:opacity-100 transition-opacity whitespace-nowrap border border-slate-100 dark:border-slate-700">
+                        <p className="text-xs font-bold text-slate-700 dark:text-slate-200">Feeling Loved</p>
+                      </div>
+                      <div className="w-2 h-2 bg-slate-400/30 rounded-full blur-[1px] mt-1"></div>
                     </div>
-
-                    <div className="absolute bottom-20 left-20 bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-lg">
-                      <div className="flex items-center space-x-2">
-                        <TreePine className="w-4 h-4 text-green-600" />
-                        <span className="text-xs font-medium text-gray-700">Hutan Kota</span>
+                    <div className="absolute top-[30%] right-[25%] flex flex-col items-center group/pin cursor-pointer">
+                      <div className="relative z-10">
+                        <div className="w-3 h-3 bg-[#2b9dee] rounded-full animate-ping absolute inset-0 opacity-75"></div>
+                        <div className="w-3 h-3 bg-[#2b9dee] rounded-full relative shadow-lg shadow-[#2b9dee]/40 border-2 border-white dark:border-slate-800"></div>
+                      </div>
+                      <div className="absolute top-6 left-1/2 -translate-x-1/2 w-48 bg-white/95 dark:bg-slate-900/95 backdrop-blur rounded-xl shadow-soft p-3 border border-slate-100 dark:border-slate-700 flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Park Zone</span>
+                          <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded">
+                            <span className="material-symbols-outlined text-[10px]">air</span> AQI 12
+                          </div>
+                        </div>
+                        <div className="h-px w-full bg-slate-100 dark:bg-slate-800"></div>
+                        <p className="text-xs text-slate-600 dark:text-slate-300">&quot;Felt incredibly peaceful watching the trees sway.&quot;</p>
                       </div>
                     </div>
                   </div>
+                  <div className="absolute -bottom-6 -right-6 w-full h-full border-2 border-[#2b9dee]/5 rounded-3xl -z-10 hidden lg:block"></div>
+                  <div className="absolute -bottom-12 -right-12 w-full h-full border-2 border-[#2b9dee]/5 rounded-3xl -z-20 hidden lg:block"></div>
                 </div>
-                <div className="mt-6 text-center">
-                  <p className="text-gray-600 text-sm">
-                    Interactive map untuk eksplorasi area hijau dan monitoring kualitas udara real-time
-                  </p>
+                <div className="order-1 lg:order-2 flex flex-col gap-8">
+                  <div className="flex flex-col gap-4">
+                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#e0f2fe] dark:bg-blue-900/30 text-[#0d161b] dark:text-[#2b9dee] text-xs font-bold uppercase tracking-wider w-fit">
+                      <span className="material-symbols-outlined text-sm">map</span>
+                      New Feature
+                    </span>
+                    <h2 className="text-3xl md:text-4xl font-bold text-[#0d161b] dark:text-white leading-tight">
+                      Map your mood to <br /> <span className="text-[#2b9dee]">the world around you.</span>
+                    </h2>
+                    <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-light">
+                      Discover the hidden geography of your emotions. Our new map feature lets you overlay your journal entries onto environmental data, revealing safe havens and stress zones in your city.
+                    </p>
+                  </div>
+                  <div className="grid gap-6">
+                    <div className="flex gap-4 p-4 rounded-xl hover:bg-white hover:shadow-sm dark:hover:bg-slate-800/50 border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition-all">
+                      <div className="size-12 rounded-full bg-blue-50 dark:bg-blue-900/20 text-[#2b9dee] flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined">explore</span>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-800 dark:text-slate-200 text-lg">Explore Emotional Hotspots</h4>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 leading-relaxed">Visualize where you feel most anxious or calm over time.</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-4 p-4 rounded-xl hover:bg-white hover:shadow-sm dark:hover:bg-slate-800/50 border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition-all">
+                      <div className="size-12 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined">nature_people</span>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-800 dark:text-slate-200 text-lg">Find Your Green Sanctuary</h4>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 leading-relaxed">Locate parks and quiet zones with the best air quality near you.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="pt-4">
+                    <button className="flex items-center gap-2 text-[#2b9dee] hover:text-[#1a8cd8] font-bold transition-colors group">
+                      Explore the Map
+                      <span className="material-symbols-outlined transition-transform group-hover:translate-x-1">arrow_forward</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
+          </section>
 
-      {/* Features Section */}
-      <section className="py-28 bg-white/60 relative overflow-hidden">
-        {/* Background pattern */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-50/30 to-[#2596be]/10"></div>
-
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center mb-20">
-            <Badge className="mb-6 bg-[#2596be]/10 text-[#2596be] border-[#2596be]/20 px-4 py-2 rounded-full">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Fitur Unggulan
-            </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold mb-8 text-gray-800">
-              Teman <span className="text-[#2596be]">Seperjalanan</span> mu
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Setiap fitur dirancang untuk mendampingi perjalanan kesehatan mentalmu dengan lembut
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Existing features... */}
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2 bg-gradient-to-br from-white to-[#2596be]/5 rounded-3xl overflow-hidden group">
-              <CardHeader className="pb-4">
-                <div className="w-16 h-16 bg-[#2596be] rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform">
-                  <BookOpen className="w-8 h-8 text-white" />
-                </div>
-                <CardTitle className="text-xl text-gray-800 font-semibold">Jurnal Harian</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 leading-relaxed">
-                  Ruang menulis yang nyaman dengan panduan lembut untuk membantu memahami perasaan dan pikiranmu.
+          {/* Sample Insight Section */}
+          <section className="py-24 px-6 bg-gradient-to-b from-blue-50/50 to-transparent dark:from-blue-900/10 dark:to-transparent">
+            <div className="max-w-[800px] mx-auto text-center">
+              <span className="inline-flex items-center gap-2 px-3 py-1 mb-8 rounded-full bg-white/60 dark:bg-white/5 border border-white/20 text-slate-500 dark:text-slate-300 text-xs font-bold uppercase tracking-wider backdrop-blur-sm">
+                <span className="material-symbols-outlined text-sm text-[#2b9dee]">auto_awesome</span>
+                Sample Insight
+              </span>
+              <div className="relative bg-white dark:bg-slate-800 p-8 md:p-12 rounded-3xl shadow-glow border border-[#2b9dee]/10">
+                <span className="material-symbols-outlined text-4xl text-[#2b9dee] mb-6">format_quote</span>
+                <p className="text-xl md:text-2xl font-light text-slate-700 dark:text-slate-200 leading-relaxed italic">
+                  &quot;It seems your anxiety tends to spike when the PM2.5 levels exceed 100. On days like this, consider indoor activities or using an air purifier to help maintain your calm.&quot;
                 </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2 bg-gradient-to-br from-white to-[#2596be]/5 rounded-3xl overflow-hidden group">
-              <CardHeader className="pb-4">
-                <div className="w-16 h-16 bg-[#2596be] rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform">
-                  <Brain className="w-8 h-8 text-white" />
+                <div className="mt-8 flex items-center justify-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                    <div className="w-full h-full flex items-center justify-center text-slate-400">
+                      <span className="material-symbols-outlined">smart_toy</span>
+                    </div>
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wide">Jurnalin AI</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Analysis based on your last 14 entries</p>
+                  </div>
                 </div>
-                <CardTitle className="text-xl text-gray-800 font-semibold">Teman AI</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 leading-relaxed">
-                  Pendengar yang memahami ceritamu dan memberikan insight tentang pola emosi secara personal.
-                </p>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+          </section>
 
-            {/* Green Map Feature Card */}
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2 bg-gradient-to-br from-white to-green-50 rounded-3xl overflow-hidden group">
-              <CardHeader className="pb-4">
-                <div className="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform">
-                  <Map className="w-8 h-8 text-white" />
+          {/* Privacy & Who Is It For Section */}
+          <section className="py-24 px-6">
+            <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+              <div className="flex flex-col gap-6 p-8 rounded-3xl bg-slate-50 dark:bg-slate-800/30">
+                <div className="size-12 flex items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+                  <span className="material-symbols-outlined">lock</span>
                 </div>
-                <CardTitle className="text-xl text-gray-800 font-semibold">Green Map</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 leading-relaxed">
-                  Eksplor area hijau terdekat dan pantau kualitas udara untuk mendukung healing journey-mu.
+                <h3 className="text-2xl font-bold text-[#0d161b] dark:text-white">Private by design</h3>
+                <p className="text-slate-600 dark:text-slate-400">
+                  Your thoughts are personal. Jurnalin uses end-to-end encryption so that no one, not even us, can read your entries. Your location data stays on your device.
                 </p>
-              </CardContent>
-            </Card>
-
-            {/* Rest of existing features... */}
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2 bg-gradient-to-br from-white to-[#2596be]/5 rounded-3xl overflow-hidden group">
-              <CardHeader className="pb-4">
-                <div className="w-16 h-16 bg-[#2596be] rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform">
-                  <MessageCircle className="w-8 h-8 text-white" />
+                <ul className="flex flex-col gap-3 mt-2">
+                  <li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+                    <span className="material-symbols-outlined text-emerald-500 text-lg">check_circle</span>
+                    Zero-knowledge encryption
+                  </li>
+                  <li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+                    <span className="material-symbols-outlined text-emerald-500 text-lg">check_circle</span>
+                    No ads, no data selling
+                  </li>
+                </ul>
+              </div>
+              <div className="flex flex-col gap-8 px-4">
+                <h3 className="text-2xl font-bold text-[#0d161b] dark:text-white">Who is Jurnalin for?</h3>
+                <div className="flex flex-col gap-6">
+                  <div className="flex gap-4">
+                    <span className="material-symbols-outlined text-[#2b9dee] mt-1">self_improvement</span>
+                    <div>
+                      <h4 className="font-bold text-slate-800 dark:text-slate-200">The Mindful</h4>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">People looking to deepen their meditation and self-reflection practice.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-4">
+                    <span className="material-symbols-outlined text-[#2b9dee] mt-1">health_metrics</span>
+                    <div>
+                      <h4 className="font-bold text-slate-800 dark:text-slate-200">The Health Conscious</h4>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Those sensitive to air quality or weather changes affecting their body and mind.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-4">
+                    <span className="material-symbols-outlined text-[#2b9dee] mt-1">query_stats</span>
+                    <div>
+                      <h4 className="font-bold text-slate-800 dark:text-slate-200">The Data Curious</h4>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Individuals who love quantified self metrics and actionable data.</p>
+                    </div>
+                  </div>
                 </div>
-                <CardTitle className="text-xl text-gray-800 font-semibold">Pendengar Empatik</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 leading-relaxed">
-                  Teman bicara yang selalu ada 24/7 untuk mendengarkan ceritamu dengan penuh pengertian.
-                </p>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+          </section>
 
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2 bg-gradient-to-br from-white to-[#2596be]/5 rounded-3xl overflow-hidden group">
-              <CardHeader className="pb-4">
-                <div className="w-16 h-16 bg-[#2596be] rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform">
-                  <BarChart3 className="w-8 h-8 text-white" />
-                </div>
-                <CardTitle className="text-xl text-gray-800 font-semibold">Progress Tracker</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 leading-relaxed">
-                  Lihat perkembangan perjalananmu dengan visualisasi yang mudah dipahami dan menyemangati.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2 bg-gradient-to-br from-white to-[#2596be]/5 rounded-3xl overflow-hidden group">
-              <CardHeader className="pb-4">
-                <div className="w-16 h-16 bg-[#2596be] rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform">
-                  <TreePine className="w-8 h-8 text-white" />
-                </div>
-                <CardTitle className="text-xl text-gray-800 font-semibold">Taman Pribadi</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 leading-relaxed">
-                  Taman virtual yang tumbuh seiring konsistensimu merawat diri, sebagai refleksi perjalanan healing.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works & Testimonials sections remain the same... */}
-
-      {/* Enhanced CTA Section */}
-      <section className="py-28 bg-gradient-to-br from-[#2596be] via-[#1f7a9c] to-[#2596be] relative overflow-hidden">
-        {/* Background decorations */}
-        <div className="absolute top-10 left-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-10 right-10 w-60 h-60 bg-white/5 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-white/5 rounded-full blur-3xl"></div>
-
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <div className="max-w-4xl mx-auto">
-            <Badge className="mb-8 bg-white/20 text-white border-white/30 px-6 py-3 rounded-full text-lg backdrop-blur-sm">
-              <Award className="w-5 h-5 mr-2" />
-              Mulai Perjalanan Healing-mu
-            </Badge>
-
-            <h2 className="text-4xl md:text-6xl font-bold mb-8 text-white leading-tight">
-              Beri Ruang untuk
-              <span className="block">Dirimu Bercerita</span>
-            </h2>
-
-            <p className="text-xl md:text-2xl text-blue-100 mb-12 max-w-3xl mx-auto leading-relaxed">
-              Bergabung dengan 25.000+ sahabat Jurnalin yang telah menemukan ketenangan
-              melalui cerita dan refleksi.
-              <span className="font-semibold text-white"> Setiap perasaan berharga untuk didengarkan. 🌱</span>
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+          {/* CTA Section */}
+          <section className="py-24 px-6 text-center border-t border-slate-100 dark:border-slate-800 bg-[#f6f7f8] dark:bg-[#101a22]">
+            <div className="max-w-[600px] mx-auto flex flex-col items-center gap-6">
+              <h2 className="text-3xl font-bold text-[#0d161b] dark:text-white">Ready to find clarity?</h2>
+              <p className="text-slate-600 dark:text-slate-400 text-lg font-light mb-4">
+                Start your journey towards a more connected and mindful life today.
+              </p>
               <Link href="/auth/sign-up">
-                <Button size="lg" className="bg-white text-[#2596be] hover:bg-blue-50 px-12 py-6 text-xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-full">
-                  <CheckCircle className="mr-3 w-6 h-6" />
-                  Mulai Menulis Sekarang
-                  <ChevronRight className="ml-3 w-6 h-6" />
-                </Button>
+                <button className="flex min-w-[200px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-14 px-8 bg-[#2b9dee] hover:bg-[#1a8cd8] text-white shadow-lg shadow-blue-500/30 text-lg font-bold transition-all transform hover:-translate-y-1">
+                  Start Journaling Free
+                </button>
               </Link>
-              <Link href="/auth/login">
-                <Button size="lg" variant="outline" className="border-2 border-white/30 text-white hover:bg-white/10 px-12 py-6 text-xl backdrop-blur-sm rounded-full font-semibold">
-                  <Users className="mr-3 w-6 h-6" />
-                  Sudah Punya Akun?
-                </Button>
-              </Link>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-4">No credit card required. Free plan available forever.</p>
             </div>
+          </section>
+        </main>
 
-            {/* Trust indicators */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                <Shield className="w-12 h-12 text-white mx-auto mb-4" />
-                <p className="text-white font-semibold">Privasi Terjaga</p>
-                <p className="text-blue-100 text-sm">Ceritamu hanya untukmu</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                <Map className="w-12 h-12 text-white mx-auto mb-4" />
-                <p className="text-white font-semibold">Green Map</p>
-                <p className="text-blue-100 text-sm">Eksplor area hijau terdekat</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                <Sparkles className="w-12 h-12 text-white mx-auto mb-4" />
-                <p className="text-white font-semibold">Setup Instan</p>
-                <p className="text-blue-100 text-sm">Langsung mulai dalam 2 menit</p>
+        {/* Footer */}
+        <footer className="w-full border-t border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-[#101a22]/50 backdrop-blur-sm">
+          <div className="flex flex-col justify-center py-8 px-6 lg:px-20">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 max-w-[1200px] w-full mx-auto">
+              <p className="text-slate-500 dark:text-slate-400 text-sm font-normal">© 2024 Jurnalin. All rights reserved.</p>
+              <div className="flex gap-8">
+                <Link href="#" className="text-slate-500 dark:text-slate-400 hover:text-[#2b9dee] dark:hover:text-[#2b9dee] transition-colors text-sm font-normal">
+                  Privacy Policy
+                </Link>
+                <Link href="#" className="text-slate-500 dark:text-slate-400 hover:text-[#2b9dee] dark:hover:text-[#2b9dee] transition-colors text-sm font-normal">
+                  Terms of Service
+                </Link>
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Footer remains the same... */}
-    </div>
+        </footer>
+      </div>
+    </>
   );
 }
