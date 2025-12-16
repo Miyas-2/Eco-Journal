@@ -17,7 +17,7 @@ export default async function ProtectedLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0f1419]">
       {/* DevTools Navigation */}
       <DevToolsNavigation user={user} />
       <SimpleChatBot />

@@ -43,7 +43,23 @@ export default function JournalFormLexend({ userId }: JournalFormProps) {
   const supabase = createClient();
   const router = useRouter();
 
-  const displayName = 'Alex'; // You can get this from user metadata
+  // const displayName = 'Alex'; // You can get this from user metadata
+  const [displayName, setDisplayName] = useState<string>('');
+
+  // Fetch displayName from user metadata
+  useEffect(() => {
+    const fetchDisplayName = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && user.user_metadata && user.user_metadata.display_name) {
+        setDisplayName(user.user_metadata.display_name);
+      } else if (user && user.email) {
+        setDisplayName(user.email.split('@')[0]);
+      } else {
+        setDisplayName('Friend');
+      }
+    };
+    fetchDisplayName();
+  }, []);
 
   // Get current date
   const getCurrentDate = () => {

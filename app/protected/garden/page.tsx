@@ -3,20 +3,14 @@ import { createClient } from "@/lib/supabase/server";
 import { Metadata } from 'next';
 import { 
   Award, 
-  Trophy, 
-  Star,
   BookOpen,
-  Zap,
-  CheckCircle,
-  Lock,
-  ArrowLeft,
   Flame,
   TrendingUp,
-  Sparkles
+  Sparkles,
+  ArrowLeft
 } from "lucide-react";
 import Link from "next/link";
-import { format } from "date-fns";
-import { id as localeId } from "date-fns/locale";
+import AchievementsSection from "@/components/garden/AchievementsSection";
 
 export const metadata: Metadata = {
   title: 'Journey & Achievements | Jurnalin',
@@ -75,92 +69,6 @@ export default async function GardenPage() {
     userAchievements?.map(ua => ua.achievement_id) || []
   );
 
-  // Kategorisasi achievements
-  const categorizedAchievements = {
-    writing: allAchievements?.filter(a => 
-      a.name.toLowerCase().includes('jurnal') || 
-      a.name.toLowerCase().includes('menulis') ||
-      a.description.toLowerCase().includes('jurnal')
-    ) || [],
-    streak: allAchievements?.filter(a => 
-      a.name.toLowerCase().includes('konsisten') || 
-      a.name.toLowerCase().includes('berturut') ||
-      a.description.toLowerCase().includes('berturut')
-    ) || [],
-    milestone: allAchievements?.filter(a => 
-      a.name.toLowerCase().includes('milestone') || 
-      a.name.toLowerCase().includes('pencapaian') ||
-      a.points_reward >= 100
-    ) || [],
-    special: allAchievements?.filter(a => 
-      !a.name.toLowerCase().includes('jurnal') && 
-      !a.name.toLowerCase().includes('menulis') &&
-      !a.name.toLowerCase().includes('konsisten') && 
-      !a.name.toLowerCase().includes('berturut') &&
-      !a.name.toLowerCase().includes('milestone') &&
-      a.points_reward < 100
-    ) || []
-  };
-
-  // Achievement icon mapping
-  const getAchievementIcon = (achievementName: string, isEarned: boolean) => {
-    const name = achievementName.toLowerCase();
-    let IconComponent;
-    let colorClass = isEarned ? 'text-amber-500' : 'text-slate-400';
-    let bgColorClass = isEarned ? 'bg-amber-50 dark:bg-amber-900/20' : 'bg-slate-50 dark:bg-slate-700';
-
-    if (name.includes('jurnal') || name.includes('menulis')) {
-      IconComponent = BookOpen;
-      if (isEarned) {
-        colorClass = 'text-blue-500 dark:text-blue-400';
-        bgColorClass = 'bg-blue-50 dark:bg-blue-900/20';
-      }
-    } else if (name.includes('konsisten') || name.includes('berturut')) {
-      IconComponent = Zap;
-      if (isEarned) {
-        colorClass = 'text-orange-500 dark:text-orange-400';
-        bgColorClass = 'bg-orange-50 dark:bg-orange-900/20';
-      }
-    } else if (name.includes('milestone') || name.includes('pencapaian')) {
-      IconComponent = Trophy;
-      if (isEarned) {
-        colorClass = 'text-purple-500 dark:text-purple-400';
-        bgColorClass = 'bg-purple-50 dark:bg-purple-900/20';
-      }
-    } else {
-      IconComponent = Star;
-      if (isEarned) {
-        colorClass = 'text-emerald-500 dark:text-emerald-400';
-        bgColorClass = 'bg-emerald-50 dark:bg-emerald-900/20';
-      }
-    }
-
-    return { IconComponent, colorClass, bgColorClass };
-  };
-
-  // Calculate progress for achievements
-  const getAchievementProgress = (achievement: any) => {
-    const name = achievement.name.toLowerCase();
-    const description = achievement.description.toLowerCase();
-
-    // Jurnal writing achievements
-    if (name.includes('jurnal') || description.includes('jurnal')) {
-      if (description.includes('10')) return { current: totalJournals, target: 10, percentage: Math.min((totalJournals / 10) * 100, 100) };
-      if (description.includes('25')) return { current: totalJournals, target: 25, percentage: Math.min((totalJournals / 25) * 100, 100) };
-      if (description.includes('50')) return { current: totalJournals, target: 50, percentage: Math.min((totalJournals / 50) * 100, 100) };
-      if (description.includes('100')) return { current: totalJournals, target: 100, percentage: Math.min((totalJournals / 100) * 100, 100) };
-    }
-
-    // Streak achievements
-    if (name.includes('berturut') || description.includes('berturut')) {
-      if (description.includes('7')) return { current: currentStreak, target: 7, percentage: Math.min((currentStreak / 7) * 100, 100) };
-      if (description.includes('14')) return { current: currentStreak, target: 14, percentage: Math.min((currentStreak / 14) * 100, 100) };
-      if (description.includes('30')) return { current: currentStreak, target: 30, percentage: Math.min((currentStreak / 30) * 100, 100) };
-    }
-
-    return { current: 0, target: 0, percentage: 0 };
-  };
-
   const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
 
   // Calculate level based on points
@@ -176,7 +84,7 @@ export default async function GardenPage() {
   const levelProgress = ((totalPoints % currentLevel.next) / currentLevel.next) * 100;
 
   return (
-    <div style={{ fontFamily: 'Lexend, sans-serif' }} className="min-h-screen bg-[#f8fafc] dark:bg-[#101a22]">
+    <div style={{ fontFamily: 'Lexend, sans-serif' }} className="min-h-screen bg-[#f8fafc] dark:bg-[#101a22] md:ml-16">
       <div className="max-w-[960px] mx-auto px-4 md:px-10 py-8">
         
         {/* Back Button */}
@@ -294,72 +202,13 @@ export default async function GardenPage() {
           </div>
         </div>
 
-        {/* Milestones Section */}
-        <div className="flex flex-col gap-6">
-          <div className="flex justify-between items-center">
-            <h3 className="text-slate-900 dark:text-white text-2xl font-bold">Milestones</h3>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {allAchievements?.slice(0, 8).map((achievement) => {
-              const isEarned = earnedAchievementIds.has(achievement.id);
-              const { IconComponent, colorClass, bgColorClass } = getAchievementIcon(achievement.name, isEarned);
-              const progress = getAchievementProgress(achievement);
-              const inProgress = !isEarned && progress.percentage > 0;
-
-              return (
-                <div
-                  key={achievement.id}
-                  className={`flex flex-col gap-4 rounded-2xl p-5 border shadow-sm transition-all ${
-                    isEarned
-                      ? 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:shadow-md'
-                      : inProgress
-                      ? 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 relative overflow-hidden'
-                      : 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800/50 opacity-70 grayscale'
-                  }`}
-                >
-                  {inProgress && (
-                    <div className="absolute bottom-0 left-0 h-1 bg-[#2b9dee]/20 w-full">
-                      <div className="h-full bg-[#2b9dee]" style={{ width: `${progress.percentage}%` }}></div>
-                    </div>
-                  )}
-                  
-                  <div className="flex justify-between items-start">
-                    <div className={`size-12 rounded-full flex items-center justify-center ${bgColorClass}`}>
-                      <IconComponent className={`h-6 w-6 ${colorClass}`} />
-                    </div>
-                    {isEarned ? (
-                      <CheckCircle className="h-5 w-5 text-emerald-500" />
-                    ) : inProgress ? (
-                      <span className="text-xs font-bold text-[#2b9dee] bg-[#2b9dee]/10 px-2 py-1 rounded">
-                        {progress.current}/{progress.target}
-                      </span>
-                    ) : (
-                      <Lock className="h-5 w-5 text-slate-300 dark:text-slate-600" />
-                    )}
-                  </div>
-                  
-                  <div>
-                    <p className="text-slate-900 dark:text-white font-bold text-lg mb-1">
-                      {achievement.name}
-                    </p>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">
-                      {achievement.description}
-                    </p>
-                  </div>
-                  
-                  {isEarned && (
-                    <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-700">
-                      <span className="text-xs font-bold text-amber-500">
-                        +{achievement.points_reward} points earned
-                      </span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        {/* Milestones Section with Toggle */}
+        <AchievementsSection
+          allAchievements={allAchievements || []}
+          earnedAchievementIds={earnedAchievementIds}
+          totalJournals={totalJournals}
+          currentStreak={currentStreak}
+        />
 
         {/* Footer Spacer */}
         <div className="h-20"></div>

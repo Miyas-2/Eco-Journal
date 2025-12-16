@@ -151,7 +151,7 @@ export default async function ProfilePage() {
               Profile & Analytics
             </h1>
             <p className="text-slate-500 dark:text-slate-400 text-base font-light leading-normal max-w-2xl">
-              Analisa mendalam dari perjalanan wellness Anda. Pahami pola, tren, dan perkembangan diri Anda.
+              An in-depth analysis of your wellness journey. Understand your patterns, trends, and personal development.
             </p>
           </div>
         </div>
@@ -170,19 +170,19 @@ export default async function ProfilePage() {
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{displayName}</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 truncate">{email}</p>
                 <div className="text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-700/50 px-3 py-2 rounded-xl">
-                  Bergabung {formatDate(joinDate)}
+                  Joined {formatDate(joinDate)}
                 </div>
               </div>
             </div>
 
             {/* Quick Stats */}
             <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
-              <h4 className="font-bold text-slate-900 dark:text-white mb-4">Statistik Cepat</h4>
+              <h4 className="font-bold text-slate-900 dark:text-white mb-4">Quick Stats</h4>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <BookOpen className="h-4 w-4 text-[#2b9dee]" />
-                    <span className="text-sm text-slate-600 dark:text-slate-400">Total Jurnal</span>
+                    <span className="text-sm text-slate-600 dark:text-slate-400">Total Journals</span>
                   </div>
                   <span className="font-bold text-slate-900 dark:text-white">{totalJournals}</span>
                 </div>
@@ -192,7 +192,7 @@ export default async function ProfilePage() {
                     <Activity className="h-4 w-4 text-orange-500" />
                     <span className="text-sm text-slate-600 dark:text-slate-400">Current Streak</span>
                   </div>
-                  <span className="font-bold text-slate-900 dark:text-white">{currentStreak} hari</span>
+                  <span className="font-bold text-slate-900 dark:text-white">{currentStreak} Days</span>
                 </div>
                 
                 <div className="flex items-center justify-between">
@@ -206,7 +206,7 @@ export default async function ProfilePage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Target className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-slate-600 dark:text-slate-400">Pencapaian</span>
+                    <span className="text-sm text-slate-600 dark:text-slate-400">Achievements</span>
                   </div>
                   <span className="font-bold text-slate-900 dark:text-white">{totalAchievements}</span>
                 </div>
@@ -216,12 +216,12 @@ export default async function ProfilePage() {
             {/* Recent Achievements */}
             <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="font-bold text-slate-900 dark:text-white">Pencapaian Terbaru</h4>
+                <h4 className="font-bold text-slate-900 dark:text-white">Recent Achievements</h4>
                 <Link 
                   href="/protected/garden"
                   className="text-xs font-bold text-[#2b9dee] hover:text-[#1e7ac7] transition-colors"
                 >
-                  Lihat Semua
+                  See All
                 </Link>
               </div>
               
@@ -237,7 +237,7 @@ export default async function ProfilePage() {
                           {achievement.achievements.name}
                         </p>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
-                          +{achievement.achievements.points_reward} poin
+                          +{achievement.achievements.points_reward} points
                         </p>
                       </div>
                     </div>
@@ -246,7 +246,7 @@ export default async function ProfilePage() {
               ) : (
                 <div className="text-center py-8">
                   <Award className="h-8 w-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Belum ada pencapaian</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">No achievements yet</p>
                 </div>
               )}
             </div>
@@ -264,7 +264,7 @@ export default async function ProfilePage() {
                 <div className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
                   {monthlyJournalCount}
                 </div>
-                <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">Jurnal 30 Hari</div>
+                <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">Journals in 30 Days</div>
               </div>
 
               <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 text-center shadow-sm border border-slate-100 dark:border-slate-700">
@@ -274,7 +274,7 @@ export default async function ProfilePage() {
                 <div className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
                   {averageMood ? averageMood.toFixed(1) : 'N/A'}
                 </div>
-                <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">Rata-rata Mood</div>
+                <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">Average Mood</div>
               </div>
 
               <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 text-center shadow-sm border border-slate-100 dark:border-slate-700">
@@ -284,7 +284,7 @@ export default async function ProfilePage() {
                 <div className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
                   {writingFrequency.toFixed(0)}%
                 </div>
-                <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">Frekuensi Menulis</div>
+                <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">Writing Frequency</div>
               </div>
 
               <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 text-center shadow-sm border border-slate-100 dark:border-slate-700">
@@ -294,7 +294,7 @@ export default async function ProfilePage() {
                 <div className="text-lg font-bold text-slate-900 dark:text-white mb-2 capitalize">
                   {topEmotions.length > 0 ? topEmotions[0][0] : 'N/A'}
                 </div>
-                <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">Emosi Dominan</div>
+                <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">Dominant Emotion</div>
               </div>
             </div>
 
@@ -317,7 +317,7 @@ export default async function ProfilePage() {
                 ) : (
                   <div className="text-center py-12">
                     <TrendingUp className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-                    <p className="text-slate-500 dark:text-slate-400 font-light">Belum ada data mood</p>
+                    <p className="text-slate-500 dark:text-slate-400 font-light">No mood data</p>
                   </div>
                 )}
               </div>
@@ -338,7 +338,7 @@ export default async function ProfilePage() {
                 ) : (
                   <div className="text-center py-12">
                     <PieChart className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-                    <p className="text-slate-500 dark:text-slate-400 font-light">Belum ada data emosi</p>
+                    <p className="text-slate-500 dark:text-slate-400 font-light">No emotion data</p>
                   </div>
                 )}
               </div>
@@ -359,7 +359,7 @@ export default async function ProfilePage() {
                 ) : (
                   <div className="text-center py-12">
                     <Cloud className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-                    <p className="text-slate-500 dark:text-slate-400 font-light">Belum ada data korelasi</p>
+                    <p className="text-slate-500 dark:text-slate-400 font-light">No correlation data</p>
                   </div>
                 )}
               </div>
@@ -380,7 +380,7 @@ export default async function ProfilePage() {
                 ) : (
                   <div className="text-center py-12">
                     <BarChart3 className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-                    <p className="text-slate-500 dark:text-slate-400 font-light">Belum ada data untuk word cloud</p>
+                    <p className="text-slate-500 dark:text-slate-400 font-light">No data for word cloud</p>
                   </div>
                 )}
               </div>
@@ -398,15 +398,15 @@ export default async function ProfilePage() {
                 <div>
                   <h4 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                     <Clock className="h-5 w-5 text-[#2b9dee]" />
-                    Pola Menulis
+                    Writing Patterns
                   </h4>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                      <span className="text-sm text-slate-600 dark:text-slate-400">Hari aktif menulis</span>
+                      <span className="text-sm text-slate-600 dark:text-slate-400">Active Writing Days</span>
                       <span className="font-bold text-slate-900 dark:text-white">{daysWithJournals}/30</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                      <span className="text-sm text-slate-600 dark:text-slate-400">Konsistensi</span>
+                      <span className="text-sm text-slate-600 dark:text-slate-400">Consistency</span>
                       <span className={`text-xs font-bold px-2 py-1 rounded ${
                         writingFrequency > 70 
                           ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' 
@@ -424,7 +424,7 @@ export default async function ProfilePage() {
                 <div>
                   <h4 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                     <Heart className="h-5 w-5 text-orange-500" />
-                    Pola Emosi
+                    Emotional Patterns
                   </h4>
                   <div className="space-y-3">
                     {topEmotions.length > 0 ? (
@@ -436,7 +436,7 @@ export default async function ProfilePage() {
                       ))
                     ) : (
                       <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4 font-light">
-                        Belum ada data emosi yang cukup
+                        Not enough emotion data
                       </p>
                     )}
                   </div>

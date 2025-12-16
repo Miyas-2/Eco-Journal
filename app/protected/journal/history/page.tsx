@@ -224,7 +224,7 @@ export default function JournalHistoryPage() {
           <div className="flex justify-center items-center py-20">
             <div className="text-center">
               <div className="w-12 h-12 border-4 border-[#2b9dee] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-slate-600 dark:text-slate-400 font-light">Memuat jurnal Anda...</p>
+              <p className="text-slate-600 dark:text-slate-400 font-light">Loading your journal...</p>
             </div>
           </div>
         </div>
@@ -249,7 +249,7 @@ export default function JournalHistoryPage() {
             className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-[#2b9dee] dark:hover:text-[#2b9dee] transition-colors w-fit"
           >
             <ArrowLeft className="h-5 w-5" />
-            <span className="text-sm font-medium">Kembali</span>
+            <span className="text-sm font-medium">Back</span>
           </button>
 
           {/* Sticky Header */}
@@ -258,10 +258,10 @@ export default function JournalHistoryPage() {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div className="flex flex-col gap-2">
                   <h1 className="text-3xl md:text-4xl font-light text-slate-900 dark:text-white tracking-[-0.033em]">
-                    Arsip Jurnal
+                    Journal Archive
                   </h1>
                   <p className="text-slate-500 dark:text-slate-400 text-lg font-light leading-relaxed">
-                    Jelajahi dan temukan kembali momen-momen berharga dalam perjalanan Anda
+                    Explore and rediscover precious moments in your journey
                   </p>
                 </div>
 
@@ -410,7 +410,7 @@ export default function JournalHistoryPage() {
                       </svg>
                     </div>
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-                      Tidak ada jurnal
+                      No journals
                     </h3>
                     <p className="text-slate-600 dark:text-slate-400 font-light">
                       {selectedDate
@@ -515,7 +515,7 @@ export default function JournalHistoryPage() {
                               href={`/protected/journal/${journal.id}`}
                               className="text-[#2b9dee] hover:text-[#1e7ac7] font-medium text-sm transition-colors flex items-center gap-1"
                             >
-                              Baca selengkapnya
+                              Read more
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                               </svg>

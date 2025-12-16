@@ -78,10 +78,10 @@ export default function JournalInsightSection({
   }, [initialInsightText]);
 
   const buttonText = isLoading
-    ? "Menganalisis..."
+    ? "Analyze..."
     : insight
-    ? "Perbarui Insight"
-    : "Buat Insight";
+    ? "Update Insight"
+    : "Create Insight";
 
   const ButtonIcon = isLoading
     ? Loader2
@@ -96,7 +96,7 @@ export default function JournalInsightSection({
       {/* Simple Header - matches journal style */}
       <div className="text-center">
         <p className="text-sm text-slate-500 mb-6">
-          Refleksi personal berdasarkan jurnal, emosi, dan kondisi sekitar Anda
+          Personal reflection based on your journal, emotions, and surrounding conditions
         </p>
         
         <Button
@@ -123,9 +123,9 @@ export default function JournalInsightSection({
             <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="h-8 w-8 text-amber-500" />
             </div>
-            <h4 className="text-lg font-medium text-slate-800 mb-2">Data Belum Lengkap</h4>
+            <h4 className="text-lg font-medium text-slate-800 mb-2">Incomplete Data</h4>
             <p className="text-slate-600 leading-relaxed max-w-md mx-auto">
-              Insight memerlukan data emosi, cuaca, dan tanggal jurnal yang lengkap untuk dapat dihasilkan dengan optimal.
+              Insight requires complete data on emotions, weather, and journal date to be generated optimally.
             </p>
           </div>
         )}
@@ -136,8 +136,8 @@ export default function JournalInsightSection({
             <div className="w-16 h-16 bg-sky-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <Loader2 className="h-8 w-8 text-sky-500 animate-spin" />
             </div>
-            <h4 className="text-lg font-medium text-slate-800 mb-2">AI sedang menganalisis...</h4>
-            <p className="text-slate-600">Membuat insight personal berdasarkan jurnal Anda</p>
+            <h4 className="text-lg font-medium text-slate-800 mb-2">AI is analyzing...</h4>
+            <p className="text-slate-600">Creating personal insight based on your journal</p>
           </div>
         )}
 
@@ -147,7 +147,7 @@ export default function JournalInsightSection({
             <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="h-8 w-8 text-red-500" />
             </div>
-            <h4 className="text-lg font-medium text-slate-800 mb-2">Gagal Memuat Insight</h4>
+            <h4 className="text-lg font-medium text-slate-800 mb-2">Failed to Load Insight</h4>
             <p className="text-slate-600 leading-relaxed max-w-md mx-auto">
               {error}
             </p>
@@ -178,7 +178,7 @@ export default function JournalInsightSection({
               <div className="flex items-center justify-center">
                 <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-50 px-4 py-2 rounded-xl">
                   <Sparkles className="h-4 w-4" />
-                  <span>Dibuat oleh AI • Berdasarkan jurnal, emosi, dan cuaca</span>
+                  <span>Created by AI • Based on journal, emotions, and weather</span>
                 </div>
               </div>
             </div>
@@ -192,11 +192,11 @@ export default function JournalInsightSection({
               <Brain className="h-10 w-10 text-sky-500" />
             </div>
             <h4 className="text-xl font-light text-slate-800 mb-4 leading-tight">
-              Insight Personal Menanti
+              Personal Insight Awaits
             </h4>
             <p className="text-slate-600 leading-relaxed max-w-lg mx-auto mb-8">
-              AI siap menganalisis jurnal, emosi, dan kondisi cuaca Anda untuk memberikan 
-              refleksi yang bermakna dan insight personal yang mendalam.
+              AI is ready to analyze your journal, emotions, and weather conditions to provide 
+              meaningful reflections and deep personal insights.
             </p>
             <Button
               onClick={handleFetchOrRefreshInsight}
@@ -204,7 +204,7 @@ export default function JournalInsightSection({
               disabled={isLoading}
             >
               <Brain className="h-5 w-5 mr-2" />
-              Buat Insight Pertama
+              Create First Insight
             </Button>
           </div>
         )}
@@ -215,9 +215,9 @@ export default function JournalInsightSection({
             <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Lightbulb className="h-8 w-8 text-slate-400" />
             </div>
-            <h4 className="text-lg font-medium text-slate-800 mb-2">Insight Belum Tersedia</h4>
+            <h4 className="text-lg font-medium text-slate-800 mb-2">Insight Not Available</h4>
             <p className="text-slate-600 leading-relaxed max-w-md mx-auto mb-6">
-              Tidak ada insight yang dapat dihasilkan saat ini. Coba lagi atau pastikan jurnal Anda memiliki konten yang cukup.
+              No insights can be generated at this time. Please try again or ensure your journal has sufficient content.
             </p>
             <Button
               variant="outline"
@@ -226,7 +226,7 @@ export default function JournalInsightSection({
               className="rounded-2xl"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
-              Coba Lagi
+              Try Again
             </Button>
           </div>
         )}
