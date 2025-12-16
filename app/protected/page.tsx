@@ -346,17 +346,17 @@ export default async function HomePage() {
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05)]">
                   <div className="flex justify-between items-center mb-6">
                     <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-md text-indigo-500">
+                      {/* <div className="p-1.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-md text-indigo-500">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M3 3v18h18" />
                           <path d="M18 17V9" />
                           <path d="M13 17V5" />
                           <path d="M8 17v-3" />
                         </svg>
-                      </div>
-                      <h3 className="font-bold text-slate-800 dark:text-white">Mood Trend</h3>
+                      </div> */}
+                      {/* <h3 className="font-bold text-slate-800 dark:text-white">Mood Trend</h3> */}
                     </div>
-                    <span className="text-xs text-slate-500 bg-slate-50 dark:bg-slate-700 px-3 py-1 rounded-md">Last 7 Days</span>
+                    {/* <span className="text-xs text-slate-500 bg-slate-50 dark:bg-slate-700 px-3 py-1 rounded-md">Last 7 Days</span> */}
                   </div>
 
                   {recentMoodData && recentMoodData.length > 0 ? (

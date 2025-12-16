@@ -45,7 +45,7 @@ export default function EmotionCompositionPie() {
   return (
     <div className="mb-8 p-6 bg-card border rounded-lg shadow-sm">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Komposisi Emosi</h2>
+        {/* <h2 className="text-lg font-semibold">Komposisi Emosi</h2> */}
         <select
           className="border rounded px-2 py-1 text-sm"
           value={range}
@@ -57,26 +57,31 @@ export default function EmotionCompositionPie() {
         </select>
       </div>
       {loading ? (
-        <div className="flex items-center justify-center h-40 text-muted-foreground">
+        <div className="flex items-center justify-center h-[320px] text-muted-foreground">
           <Loader2 className="animate-spin mr-2" /> Memuat grafik...
         </div>
       ) : data.length === 0 ? (
-        <div className="text-center text-muted-foreground py-8">
-          Belum ada data emosi untuk ditampilkan.
+        <div className="flex flex-col items-center justify-center h-[320px] text-muted-foreground">
+          <svg className="w-12 h-12 mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-sm">Belum ada data emosi untuk ditampilkan.</p>
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={320}>
-          <PieChart>
+          <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
             <Pie
               data={data}
               dataKey="percent"
               nameKey="emotion"
               cx="50%"
               cy="50%"
-              outerRadius={110}
+              outerRadius={80}
+              innerRadius={0}
               label={({ percent, emotion }) =>
-                `${emotion} (${percent.toFixed(0)}%)`
+                percent > 5 ? `${emotion} (${percent.toFixed(0)}%)` : ''
               }
+              labelLine={true}
               isAnimationActive
             >
               {data.map((entry, idx) => (
@@ -84,13 +89,20 @@ export default function EmotionCompositionPie() {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: any, name: string, props: any) => [
-                `${value}%`,
-                "Persentase",
-              ]}
-              labelFormatter={(label) => `Emosi: ${label}`}
+              formatter={(value: any) => [`${value.toFixed(1)}%`, "Persentase"]}
+              contentStyle={{
+                backgroundColor: 'var(--background)',
+                border: '1px solid var(--border)',
+                borderRadius: '8px',
+                padding: '8px 12px'
+              }}
             />
-            <Legend />
+            <Legend 
+              verticalAlign="bottom" 
+              height={36}
+              iconType="circle"
+              wrapperStyle={{ fontSize: '12px' }}
+            />
           </PieChart>
         </ResponsiveContainer>
       )}
