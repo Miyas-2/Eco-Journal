@@ -39,7 +39,7 @@ export default function JournalWordCloud() {
       return `hsl(206, 80%, ${lightness}%)`;
     };
 
-    return data.map((item, index) => ({
+    return data.map((item) => ({
       ...item,
       fontSize: getFontSize(item.count),
       color: getColor(item.count),
@@ -52,7 +52,7 @@ export default function JournalWordCloud() {
   return (
     <div className="mb-8 p-6 bg-card border rounded-lg shadow-sm">
       <div className="flex items-center justify-between mb-4">
-        {/* <h2 className="text-lg font-semibold">Awan Kata Jurnal</h2> */}
+        <h2 className="text-lg font-semibold">Awan Kata Jurnal</h2>
         <select
           className="border rounded px-2 py-1 text-sm"
           value={range}
@@ -78,9 +78,9 @@ export default function JournalWordCloud() {
       ) : (
         <div className="relative h-[300px] w-full overflow-hidden">
           <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-2 p-4 content-center">
-            {words.map((item, index) => (
+            {words.map((item) => (
               <span
-                key={`${item.word}-${index}`}
+                key={item.word}
                 className="inline-block hover:scale-110 transition-transform duration-200 cursor-default select-none"
                 style={{
                   fontSize: `${item.fontSize}px`,

@@ -45,7 +45,7 @@ export default function EmotionCompositionPie() {
   return (
     <div className="mb-8 p-6 bg-card border rounded-lg shadow-sm">
       <div className="flex items-center justify-between mb-4">
-        {/* <h2 className="text-lg font-semibold">Komposisi Emosi</h2> */}
+        <h2 className="text-lg font-semibold">Komposisi Emosi</h2>
         <select
           className="border rounded px-2 py-1 text-sm"
           value={range}
@@ -89,7 +89,7 @@ export default function EmotionCompositionPie() {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: any) => [`${value.toFixed(1)}%`, "Persentase"]}
+              formatter={(value: number) => [`${value.toFixed(1)}%`, "Persentase"]}
               contentStyle={{
                 backgroundColor: 'var(--background)',
                 border: '1px solid var(--border)',

@@ -5,6 +5,11 @@ const STOPWORDS = [
   "dan", "yang", "di", "ke", "dari", "untuk", "dengan", "atau", "pada", "ini", "itu", "saya", "kamu", "dia", "adalah", "akan", "dalam", "sebagai", "juga", "tidak", "ya", "apa", "bisa", "karena", "lebih", "sudah", "ada", "oleh", "mereka", "kita", "saat", "hanya", "saja", "jadi", "agar", "bagi", "oleh", "setelah", "sebelum", "tentang", "namun", "masih", "semua", "bukan", "pun", "lah", "punya", "aku", "kau", "engkau", "mu", "nya", "itu", "ini"
 ];
 
+interface JournalEntry {
+  content: string | null;
+  created_at: string;
+}
+
 export async function GET(req: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -30,9 +35,9 @@ export async function GET(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   // Gabungkan semua konten jurnal
-  let allText = data.map((entry: any) => entry.content || "").join(" ");
+  const allText = (data as JournalEntry[]).map((entry) => entry.content || "").join(" ");
   // Tokenisasi, hilangkan tanda baca, lowercase
-  let words = allText
+  const words = allText
     .replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, " ")
     .toLowerCase()
     .split(/\s+/)
