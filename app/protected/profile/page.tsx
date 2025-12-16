@@ -130,8 +130,8 @@ export default async function ProfilePage() {
   };
 
   return (
-    <div style={{ fontFamily: 'Lexend, sans-serif' }} className="min-h-screen bg-[#f8fafc] dark:bg-[#101a22]">
-      <div className="max-w-[1200px] mx-auto px-4 md:px-10 py-8">
+   <div className="bg-[#f8fafd] dark:bg-[#101a22] min-h-screen" style={{ fontFamily: 'Lexend, sans-serif' }}>
+      <div className="flex-1 w-full px-4 py-8 md:px-10 lg:px-12 xl:px-16 justify-center md:py-12">
         
         {/* Back Button */}
         <div className="mb-6">
@@ -140,7 +140,7 @@ export default async function ProfilePage() {
             className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-[#2b9dee] dark:hover:text-[#2b9dee] transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
-            <span className="text-sm font-medium">Kembali</span>
+            <span className="text-sm font-medium">Back</span>
           </Link>
         </div>
 
@@ -308,7 +308,7 @@ export default async function ProfilePage() {
                     <TrendingUp className="h-5 w-5 text-[#2b9dee]" />
                   </div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                    Tren Mood 30 Hari
+                    Mood Trend 
                   </h3>
                 </div>
                 
@@ -329,7 +329,7 @@ export default async function ProfilePage() {
                     <PieChart className="h-5 w-5 text-indigo-500" />
                   </div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                    Komposisi Emosi
+                    Emotional Composition
                   </h3>
                 </div>
                 
@@ -350,7 +350,7 @@ export default async function ProfilePage() {
                     <Cloud className="h-5 w-5 text-cyan-500" />
                   </div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                    Mood vs Kualitas Udara
+                    Mood vs Air Quality
                   </h3>
                 </div>
                 
@@ -371,7 +371,7 @@ export default async function ProfilePage() {
                     <BarChart3 className="h-5 w-5 text-purple-500" />
                   </div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                    Kata Sering Muncul
+                    Frequently Appearing Words
                   </h3>
                 </div>
                 

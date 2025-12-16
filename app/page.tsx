@@ -331,10 +331,12 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div className="pt-4">
+                      <Link href="/protected/map">
                     <button className="flex items-center gap-2 text-[#2b9dee] hover:text-[#1a8cd8] font-bold transition-colors group">
                       Explore the Map
                       <span className="material-symbols-outlined transition-transform group-hover:translate-x-1">arrow_forward</span>
                     </button>
+                    </Link>
                   </div>
                 </div>
               </div>

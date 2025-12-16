@@ -25,7 +25,7 @@ export default function MoodAirCorrelationChart() {
     return (
         <div className="mb-8 p-6 bg-card border rounded-lg shadow-sm">
             <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Korelasi Mood & Kualitas Udara</h2>
+                {/* <h2 className="text-lg font-semibold">Korelasi Mood & Kualitas Udara</h2> */}
                 <select
                     className="border rounded px-2 py-1 text-sm"
                     value={range}

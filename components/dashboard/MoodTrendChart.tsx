@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts";
-import { Loader2 } from "lucide-react";
+import { Loader2, TrendingUp } from "lucide-react";
 
 type MoodData = { date: string; avgMood: number };
 
@@ -21,7 +21,6 @@ export default function MoodTrendChart() {
   return (
     <div className="mb-8 p-6 bg-card border rounded-lg shadow-sm">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Grafik Tren Mood</h2>
         <select
           className="border rounded px-2 py-1 text-sm"
           value={range}
